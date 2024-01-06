@@ -1,7 +1,7 @@
 package com.uxm.blockchain.domain.user.repository;
 
 import com.uxm.blockchain.domain.user.entity.User;
-import com.uxm.blockchain.domain.user.mapping.UserSignUpMapping;
+import com.uxm.blockchain.domain.user.repository.mapping.UserSignUpMapping;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 

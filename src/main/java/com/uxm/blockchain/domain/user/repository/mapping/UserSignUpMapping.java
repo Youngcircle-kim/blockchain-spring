@@ -1,4 +1,4 @@
-package com.uxm.blockchain.domain.user.mapping;
+package com.uxm.blockchain.domain.user.repository.mapping;
 
 public interface UserSignUpMapping {
   Long getId();
