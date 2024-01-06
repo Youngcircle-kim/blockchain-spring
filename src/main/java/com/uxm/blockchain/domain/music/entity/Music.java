@@ -1,6 +1,6 @@
 package com.uxm.blockchain.domain.music.entity;
 
-import com.uxm.blockchain.domain.common.Genre;
+import com.uxm.blockchain.common.Enum.Genre;
 import com.uxm.blockchain.domain.nft.entity.Nft;
 import com.uxm.blockchain.domain.purchase.entity.Purchase;
 import com.uxm.blockchain.domain.user.entity.User;
@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -55,6 +56,7 @@ public class Music {
     @OneToMany(mappedBy = "music")
     private List<Purchase> purchases = new ArrayList<>();
 
+    @Builder()
     public Music(String title, String artist, String cid1, String cid2, String cid3, String sha1, String address, Genre genre, User user){
         this.title = title;
         this.artist = artist;

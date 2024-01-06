@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -46,6 +47,7 @@ public class Nft {
   @OneToMany(mappedBy = "nft")
   private List<User_nft> userNfts = new ArrayList<>();
 
+  @Builder()
   public Nft(String cid, String tx_id, User user, Music music){
     this.cid = cid;
     this.tx_id = tx_id;

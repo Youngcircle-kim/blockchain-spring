@@ -11,6 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -32,6 +33,7 @@ public class Purchase {
   @JoinColumn(name="music_id")
   private Music music;
 
+  @Builder()
   public Purchase(User user, Music music){
     this.user = user;
     this.music = music;

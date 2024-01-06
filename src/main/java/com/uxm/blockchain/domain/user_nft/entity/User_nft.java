@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -36,6 +37,7 @@ public class User_nft {
   @JoinColumn(name = "nft_id")
   private Nft nft;
 
+  @Builder()
   public User_nft(Boolean is_sale, User user, Nft nft){
     this.is_sale = is_sale;
     this.user = user;

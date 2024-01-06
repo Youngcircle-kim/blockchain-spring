@@ -1,4 +1,4 @@
-package com.uxm.blockchain.domain.common;
+package com.uxm.blockchain.common.Enum;
 
 import lombok.Getter;
 

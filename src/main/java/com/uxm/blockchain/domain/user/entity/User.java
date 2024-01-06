@@ -1,6 +1,6 @@
 package com.uxm.blockchain.domain.user.entity;
 
-import com.uxm.blockchain.domain.common.Type;
+import com.uxm.blockchain.common.Enum.Type;
 import com.uxm.blockchain.domain.music.entity.Music;
 import com.uxm.blockchain.domain.nft.entity.Nft;
 import com.uxm.blockchain.domain.purchase.entity.Purchase;
@@ -10,6 +10,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Entity
 @Getter
@@ -65,5 +66,9 @@ public class User {
         this.name = name;
         this.nickname = nickname;
         this.password = password;
+    }
+
+    public void encodePassword(PasswordEncoder passwordEncoder){
+        this.password = passwordEncoder.encode(this.password);
     }
 }
