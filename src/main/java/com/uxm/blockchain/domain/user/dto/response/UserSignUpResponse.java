@@ -2,29 +2,28 @@ package com.uxm.blockchain.domain.user.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class UserSignUpResponseDto {
+public class UserSignUpResponse {
   private String message;
   private Object data;
 
   @Builder
-  public UserSignUpResponseDto(Object data, String message){
+  public UserSignUpResponse(Object data, String message){
     this.data = data;
     this.message = message;
   }
-  public static UserSignUpResponseDto from(String message){
-    return UserSignUpResponseDto
+  public static UserSignUpResponse from(String message){
+    return UserSignUpResponse
         .builder()
         .data(null)
         .message(message)
         .build();
   }
-  public static UserSignUpResponseDto from(Object data, String message){
-    return UserSignUpResponseDto
+  public static UserSignUpResponse from(Object data, String message){
+    return UserSignUpResponse
         .builder()
         .data(data)
         .message(message)

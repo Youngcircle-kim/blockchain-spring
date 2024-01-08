@@ -2,20 +2,30 @@ package com.uxm.blockchain.domain.user.dto.resquest;
 
 import com.uxm.blockchain.common.Enum.Type;
 import com.uxm.blockchain.domain.user.entity.User;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@Builder
-@AllArgsConstructor
-public class UserSignUpRequestDto {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class UserSignUpRequest {
   private String email;
   private String password;
   private String name;
   private Type type;
   private String nickname;
   private String wallet;
+
+  @Builder
+  public UserSignUpRequest(String email, String password, String name, Type type, String nickname, String wallet){
+    this.email = email;
+    this.password = password;
+    this.name = name;
+    this.type = type;
+    this.nickname = nickname;
+    this.wallet = wallet;
+  }
 
   public User toEntity(){
     return User.builder()

@@ -1,9 +1,9 @@
 package com.uxm.blockchain.domain.user.controller;
 
 import com.uxm.blockchain.common.message.ResponseMessage;
-import com.uxm.blockchain.domain.user.dto.response.UserCheckWalletResponseDto;
-import com.uxm.blockchain.domain.user.dto.resquest.UserCheckWalletRequestDto;
-import com.uxm.blockchain.domain.user.dto.resquest.UserSignUpRequestDto;
+import com.uxm.blockchain.domain.user.dto.resquest.UserCheckWalletRequest;
+import com.uxm.blockchain.domain.user.dto.resquest.UserSignInRequest;
+import com.uxm.blockchain.domain.user.dto.resquest.UserSignUpRequest;
 import com.uxm.blockchain.domain.user.service.UserServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +23,9 @@ public class UserController {
 
   @PostMapping("/signup")
   public ResponseEntity<ResponseMessage> signUp(
-      final @RequestBody @Valid UserSignUpRequestDto userSignUpRequestDto
+      final @RequestBody @Valid UserSignUpRequest userSignUpRequestDto
   ) throws Exception {
-
     var result = this.userService.signUp(userSignUpRequestDto);
-
     ResponseMessage responseMessage;
 
     if(result.getData() == null){
@@ -40,7 +38,7 @@ public class UserController {
 
   @PostMapping("/check")
   public ResponseEntity<ResponseMessage> checkWallet(
-      final @RequestBody @Valid UserCheckWalletRequestDto userCheckWalletRequestDto
+      final @RequestBody @Valid UserCheckWalletRequest userCheckWalletRequestDto
   ) throws Exception {
     var result = userService.checkWallet(userCheckWalletRequestDto);
     ResponseMessage responseMessage;
@@ -50,6 +48,20 @@ public class UserController {
       return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
     }
     responseMessage = ResponseMessage.of(HttpStatus.CREATED, result.getMessage());
+    return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
+  }
+
+  @PostMapping("/signin")
+  public ResponseEntity<ResponseMessage> signIn(
+     final @RequestBody @Valid UserSignInRequest userSignInRequestDto
+  )throws Exception{
+    var result = userService.signIn(userSignInRequestDto);
+    ResponseMessage responseMessage;
+    if(result.getJwtToken() == null){
+      responseMessage = ResponseMessage.of(HttpStatus.BAD_REQUEST, result.getMessage());
+      return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
+    }
+    responseMessage = ResponseMessage.of(HttpStatus.OK, result.getMessage(), result.getJwtToken());
     return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
   }
 }
