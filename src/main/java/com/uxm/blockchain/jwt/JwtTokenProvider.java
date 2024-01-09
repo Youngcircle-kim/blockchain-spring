@@ -13,8 +13,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,7 +38,7 @@ public class JwtTokenProvider {
         .getAuthorities()
         .stream()
         .map(GrantedAuthority::getAuthority)
-        .collect(Collectors.joining(""));
+        .collect(Collectors.joining(","));
 
     long now = (new Date()).getTime();
 
@@ -78,7 +76,7 @@ public class JwtTokenProvider {
         .collect(Collectors.toList());
 
     UserDetails principal = new User(claims.getSubject(), "", authorities);
-    return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+    return new UsernamePasswordAuthenticationToken(principal, accessToken, authorities);
   }
 
   public boolean validateToken(String token){

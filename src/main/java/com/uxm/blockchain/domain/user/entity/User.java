@@ -4,19 +4,24 @@ import com.uxm.blockchain.common.Enum.Type;
 import com.uxm.blockchain.domain.music.entity.Music;
 import com.uxm.blockchain.domain.nft.entity.Nft;
 import com.uxm.blockchain.domain.purchase.entity.Purchase;
+import com.uxm.blockchain.domain.user.repository.mapping.UserInfoMapping;
 import com.uxm.blockchain.domain.user_nft.entity.User_nft;
 import jakarta.persistence.*;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Collectors;
 import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import nonapi.io.github.classgraph.fileslice.ArraySlice;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+@Builder
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -58,22 +63,29 @@ public class User implements UserDetails {
     private List<User_nft> userNfts = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
+    @Builder.Default
     private List<String> roles = new ArrayList<>();
 
-    @Builder()
-    public User(String name, String email, Type type, String password, String nickname, String wallet){
-        this.email = email;
-        this.name = name;
-        this.nickname = nickname;
-        this.type = type;
-        this.password = password;
-        this.wallet = wallet;
+    public static User of(UserInfoMapping userInfo){
+        return User.builder()
+            .id(userInfo.getId())
+            .name(userInfo.getName())
+            .type(userInfo.getType())
+            .nickname(userInfo.getNickname())
+            .email(userInfo.getEmail())
+            .wallet(userInfo.getWallet())
+            .build();
     }
-
     public void updateUserInfo(String name, String nickname, String password){
-        this.name = name;
-        this.nickname = nickname;
-        this.password = password;
+        if(!name.isBlank()){
+            this.name = name;
+        }
+        if (!nickname.isBlank()){
+            this.nickname = nickname;
+        }
+        if (!password.isBlank()){
+            this.password = password;
+        }
     }
 
     public void encodePassword(PasswordEncoder passwordEncoder){
@@ -89,7 +101,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return name;
+        return email;
     }
 
 

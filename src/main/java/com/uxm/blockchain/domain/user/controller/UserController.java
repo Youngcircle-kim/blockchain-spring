@@ -1,27 +1,33 @@
 package com.uxm.blockchain.domain.user.controller;
 
 import com.uxm.blockchain.common.message.ResponseMessage;
+import com.uxm.blockchain.domain.user.dto.response.UserInfoResponse;
+import com.uxm.blockchain.domain.user.dto.response.UserUpdateResponse;
 import com.uxm.blockchain.domain.user.dto.resquest.UserCheckWalletRequest;
 import com.uxm.blockchain.domain.user.dto.resquest.UserSignInRequest;
 import com.uxm.blockchain.domain.user.dto.resquest.UserSignUpRequest;
+import com.uxm.blockchain.domain.user.dto.resquest.UserUpdateRequest;
 import com.uxm.blockchain.domain.user.service.UserServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/v1")
 public class UserController {
 
   private final UserServiceImpl userService;
 
-  @PostMapping("/signup")
+  @PostMapping("/auth/signup")
   public ResponseEntity<ResponseMessage> signUp(
       final @RequestBody @Valid UserSignUpRequest userSignUpRequestDto
   ) throws Exception {
@@ -36,7 +42,7 @@ public class UserController {
     return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
   }
 
-  @PostMapping("/check")
+  @PostMapping("/auth/check")
   public ResponseEntity<ResponseMessage> checkWallet(
       final @RequestBody @Valid UserCheckWalletRequest userCheckWalletRequestDto
   ) throws Exception {
@@ -51,7 +57,7 @@ public class UserController {
     return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
   }
 
-  @PostMapping("/signin")
+  @PostMapping("/auth/signin")
   public ResponseEntity<ResponseMessage> signIn(
      final @RequestBody @Valid UserSignInRequest userSignInRequestDto
   )throws Exception{
@@ -63,5 +69,33 @@ public class UserController {
     }
     responseMessage = ResponseMessage.of(HttpStatus.OK, result.getMessage(), result.getJwtToken());
     return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
+  }
+  @GetMapping("/user")
+  public ResponseEntity<ResponseMessage> userInfo(){
+    UserInfoResponse result = this.userService.myInfo();
+    ResponseMessage responseMessage;
+    if (!result.getCheck()){
+      responseMessage = ResponseMessage.of(HttpStatus.BAD_REQUEST, result.getMessage());
+      return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
+    }
+    responseMessage = ResponseMessage.of(HttpStatus.OK, result.getMessage(), result.getUser());
+    return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
+
+  }
+
+  @PutMapping("/user")
+  public ResponseEntity<ResponseMessage> updateUserInfo(
+      final @RequestBody @Valid UserUpdateRequest userUpdateRequestDto
+  ) throws Exception {
+    try{
+      val result  = this.userService.updateInfo(userUpdateRequestDto);
+      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.OK, "내 정보 수정 성공",result);
+      return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
+    }catch (Exception e){
+      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.BAD_REQUEST, "내 정보 수정 실패 - "+ e.getMessage());
+      return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
+    }
+
+
   }
 }
