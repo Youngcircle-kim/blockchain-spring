@@ -1,9 +1,11 @@
 package com.uxm.blockchain.domain.user.controller;
 
 import com.uxm.blockchain.common.message.ResponseMessage;
+import com.uxm.blockchain.domain.user.dto.response.UserFindOneResponse;
 import com.uxm.blockchain.domain.user.dto.response.UserInfoResponse;
 import com.uxm.blockchain.domain.user.dto.response.UserUpdateResponse;
 import com.uxm.blockchain.domain.user.dto.resquest.UserCheckWalletRequest;
+import com.uxm.blockchain.domain.user.dto.resquest.UserFindOneRequest;
 import com.uxm.blockchain.domain.user.dto.resquest.UserSignInRequest;
 import com.uxm.blockchain.domain.user.dto.resquest.UserSignUpRequest;
 import com.uxm.blockchain.domain.user.dto.resquest.UserUpdateRequest;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -71,6 +74,20 @@ public class UserController {
     return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
   }
   @GetMapping("/user")
+  public ResponseEntity<ResponseMessage> userFindOneInfo(
+      final @RequestParam("search") @Valid UserFindOneRequest dto
+  ) throws Exception {
+    try {
+      val result = this.userService.findOneInfo(dto);
+      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.OK, "유저 검색 성공", result);
+      return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
+    } catch (Exception e){
+      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.BAD_REQUEST, "유저 검색 실패");
+      return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
+    }
+  }
+
+  @GetMapping("/user?search={search}")
   public ResponseEntity<ResponseMessage> userInfo(){
     UserInfoResponse result = this.userService.myInfo();
     ResponseMessage responseMessage;
@@ -82,20 +99,20 @@ public class UserController {
     return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
 
   }
-
   @PutMapping("/user")
   public ResponseEntity<ResponseMessage> updateUserInfo(
       final @RequestBody @Valid UserUpdateRequest userUpdateRequestDto
   ) throws Exception {
-    try{
-      val result  = this.userService.updateInfo(userUpdateRequestDto);
-      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.OK, "내 정보 수정 성공",result);
+    try {
+      val result = this.userService.updateInfo(userUpdateRequestDto);
+      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.OK, "내 정보 수정 성공", result);
       return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
-    }catch (Exception e){
-      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.BAD_REQUEST, "내 정보 수정 실패 - "+ e.getMessage());
+    } catch (Exception e) {
+      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.BAD_REQUEST,
+          "내 정보 수정 실패 - " + e.getMessage());
       return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
     }
-
-
   }
+
+
 }

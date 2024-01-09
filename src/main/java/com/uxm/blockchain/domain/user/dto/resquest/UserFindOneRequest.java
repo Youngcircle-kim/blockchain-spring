@@ -7,10 +7,11 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class UserCheckWalletRequest {
-  private String wallet;
+public class UserFindOneRequest {
+  private String search;
+
   @Builder
-  public UserCheckWalletRequest(String wallet){
-    this.wallet = wallet;
+  public UserFindOneRequest(String search){
+    this.search = search;
   }
 }

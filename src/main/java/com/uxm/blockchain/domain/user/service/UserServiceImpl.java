@@ -1,20 +1,20 @@
 package com.uxm.blockchain.domain.user.service;
 
 import com.uxm.blockchain.domain.user.dto.response.UserCheckWalletResponse;
+import com.uxm.blockchain.domain.user.dto.response.UserFindOneResponse;
 import com.uxm.blockchain.domain.user.dto.response.UserInfoResponse;
 import com.uxm.blockchain.domain.user.dto.response.UserSignInResponse;
 import com.uxm.blockchain.domain.user.dto.response.UserSignUpResponse;
 import com.uxm.blockchain.domain.user.dto.response.UserUpdateResponse;
 import com.uxm.blockchain.domain.user.dto.resquest.UserCheckWalletRequest;
+import com.uxm.blockchain.domain.user.dto.resquest.UserFindOneRequest;
 import com.uxm.blockchain.domain.user.dto.resquest.UserSignInRequest;
 import com.uxm.blockchain.domain.user.dto.resquest.UserSignUpRequest;
 import com.uxm.blockchain.domain.user.dto.resquest.UserUpdateRequest;
 import com.uxm.blockchain.domain.user.entity.User;
 import com.uxm.blockchain.domain.user.repository.UserRepository;
-import com.uxm.blockchain.domain.user.repository.mapping.UserInfoMapping;
 import com.uxm.blockchain.jwt.JwtToken;
 import com.uxm.blockchain.jwt.JwtTokenProvider;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -23,7 +23,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -129,5 +128,14 @@ public class UserServiceImpl implements UserService{
     User savedUser = userRepository.save(user);
     return UserUpdateResponse.from(savedUser);
   }
+
+  @Override
+  public UserFindOneResponse findOneInfo(UserFindOneRequest dto) throws Exception {
+    User user = userRepository.findByEmail(dto.getSearch())
+        .orElseThrow(() -> new Exception("존재하지 않는 유저입니다."));
+
+    return UserFindOneResponse.from(user);
+  }
+
 
 }
