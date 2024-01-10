@@ -1,6 +1,5 @@
 package com.uxm.blockchain.domain.user.dto.response;
 
-import com.uxm.blockchain.domain.user.dto.resquest.UserUpdateRequest;
 import com.uxm.blockchain.domain.user.entity.User;
 import lombok.AccessLevel;
 import lombok.Builder;

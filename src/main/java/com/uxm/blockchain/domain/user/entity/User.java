@@ -7,15 +7,12 @@ import com.uxm.blockchain.domain.purchase.entity.Purchase;
 import com.uxm.blockchain.domain.user.repository.mapping.UserInfoMapping;
 import com.uxm.blockchain.domain.user_nft.entity.User_nft;
 import jakarta.persistence.*;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.stream.Collectors;
 import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import nonapi.io.github.classgraph.fileslice.ArraySlice;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

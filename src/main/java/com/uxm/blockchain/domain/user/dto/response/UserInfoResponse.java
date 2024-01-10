@@ -1,7 +1,5 @@
 package com.uxm.blockchain.domain.user.dto.response;
 
-import com.uxm.blockchain.common.Enum.Type;
-import com.uxm.blockchain.domain.user.entity.User;
 import com.uxm.blockchain.domain.user.repository.mapping.UserInfoMapping;
 import lombok.AccessLevel;
 import lombok.Builder;
