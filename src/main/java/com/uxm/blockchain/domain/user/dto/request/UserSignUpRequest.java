@@ -1,4 +1,4 @@
-package com.uxm.blockchain.domain.user.dto.resquest;
+package com.uxm.blockchain.domain.user.dto.request;
 
 import com.uxm.blockchain.common.Enum.Type;
 import com.uxm.blockchain.domain.user.entity.User;
