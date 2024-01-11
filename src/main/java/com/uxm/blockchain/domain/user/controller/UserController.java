@@ -71,7 +71,7 @@ public class UserController {
     responseMessage = ResponseMessage.of(HttpStatus.OK, result.getMessage(), result.getJwtToken());
     return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
   }
-  @GetMapping("/user")
+  @GetMapping("/user?search={search}")
   public ResponseEntity<ResponseMessage> userFindOneInfo(
       final @RequestParam("search") @Valid UserFindOneRequest dto
   ) throws Exception {
@@ -85,7 +85,7 @@ public class UserController {
     }
   }
 
-  @GetMapping("/user?search={search}")
+  @GetMapping("/user")
   public ResponseEntity<ResponseMessage> userInfo(){
     UserInfoResponse result = this.userService.myInfo();
     ResponseMessage responseMessage;
