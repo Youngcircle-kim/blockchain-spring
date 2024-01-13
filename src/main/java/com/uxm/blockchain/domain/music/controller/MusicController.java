@@ -1,7 +1,7 @@
 package com.uxm.blockchain.domain.music.controller;
 
 import com.uxm.blockchain.common.message.ResponseMessage;
-import com.uxm.blockchain.domain.music.dto.request.MusicInfoRequest;
+import com.uxm.blockchain.domain.music.dto.request.CheckMusicChartRequest;
 import com.uxm.blockchain.domain.music.dto.request.MusicSearchRequest;
 import com.uxm.blockchain.domain.music.service.MusicServiceImpl;
 import jakarta.validation.Valid;
@@ -33,6 +33,12 @@ public class MusicController {
       ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.BAD_REQUEST, "음악 검색 실패 " + e.getMessage());
       return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
     }
+  }
+  @GetMapping("/music/chart")
+  public ResponseEntity<ResponseMessage> musicChart(
+      final @RequestParam(value = "genre") @Valid CheckMusicChartRequest dto
+  ){
+    return null;
   }
 
   @GetMapping("/music/{id}")

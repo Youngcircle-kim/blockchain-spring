@@ -63,6 +63,10 @@ public class MusicServiceImpl implements MusicService{
 
   @Override
   public CheckMusicChartResponse checkMusicChart(CheckMusicChartRequest dto) throws Exception {
+    val result = this.musicRepository.findAllByGenre(dto.getGenre());
+    if (result.isEmpty()){
+      throw new Exception("음원 리스트 조회 실패");
+    }
     return null;
   }
 

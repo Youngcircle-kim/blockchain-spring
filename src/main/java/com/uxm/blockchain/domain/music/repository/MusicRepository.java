@@ -1,5 +1,6 @@
 package com.uxm.blockchain.domain.music.repository;
 
+import com.uxm.blockchain.common.Enum.Genre;
 import com.uxm.blockchain.domain.music.entity.Music;
 import java.util.List;
 import java.util.Optional;
@@ -16,4 +17,5 @@ public interface MusicRepository extends JpaRepository<Music, Long> {
   Boolean existsByArtist(String artist);
 
   List<Music> findAllByArtist(String artist);
+  List<Music> findAllByGenre(Genre genre);
 }
