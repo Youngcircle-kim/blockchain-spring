@@ -31,7 +31,7 @@ public class UserController {
   @PostMapping("/auth/signup")
   public ResponseEntity<ResponseMessage> signUp(
       final @RequestBody @Valid UserSignUpRequest userSignUpRequestDto
-  ) throws Exception {
+  ){
     var result = this.userService.signUp(userSignUpRequestDto);
     ResponseMessage responseMessage;
 
@@ -46,7 +46,7 @@ public class UserController {
   @PostMapping("/auth/check")
   public ResponseEntity<ResponseMessage> checkWallet(
       final @RequestBody @Valid UserCheckWalletRequest userCheckWalletRequestDto
-  ) throws Exception {
+  ){
     var result = userService.checkWallet(userCheckWalletRequestDto);
     ResponseMessage responseMessage;
 
@@ -61,7 +61,7 @@ public class UserController {
   @PostMapping("/auth/signin")
   public ResponseEntity<ResponseMessage> signIn(
      final @RequestBody @Valid UserSignInRequest userSignInRequestDto
-  )throws Exception{
+  ){
     var result = userService.signIn(userSignInRequestDto);
     ResponseMessage responseMessage;
     if(result.getJwtToken() == null){
@@ -74,7 +74,7 @@ public class UserController {
   @GetMapping("/user?search={search}")
   public ResponseEntity<ResponseMessage> userFindOneInfo(
       final @RequestParam("search") @Valid UserFindOneRequest dto
-  ) throws Exception {
+  ){
     try {
       val result = this.userService.findOneInfo(dto);
       ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.OK, "유저 검색 성공", result);
@@ -100,7 +100,7 @@ public class UserController {
   @PutMapping("/user")
   public ResponseEntity<ResponseMessage> updateUserInfo(
       final @RequestBody @Valid UserUpdateRequest userUpdateRequestDto
-  ) throws Exception {
+  ){
     try {
       val result = this.userService.updateInfo(userUpdateRequestDto);
       ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.OK, "내 정보 수정 성공", result);

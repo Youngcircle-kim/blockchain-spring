@@ -11,6 +11,7 @@ import com.uxm.blockchain.domain.music.repository.MusicRepository;
 import com.uxm.blockchain.domain.purchase.repository.PurchaseRepository;
 import io.ipfs.api.IPFS;
 import io.ipfs.multihash.Multihash;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,17 +49,22 @@ public class MusicServiceImpl implements MusicService{
     }
 
     for (MusicSearchResponse m : result){
-      m.setCid1(findImageCid(m.getCid1()));
+      m.setImage(findImageCid(m.getImage()));
     }
     return result;
   }
   private String findImageCid(String cid1) throws Exception {
     try{
-      IPFS ipfs = ipfsConfig.getIpfs();
+      IPFS ipfs = this.ipfsConfig.getIpfs();
       Multihash multihash = Multihash.fromBase58(cid1);
       byte[] imageByte = ipfs.cat(multihash);
-      String encode = Base64.getEncoder().encodeToString(imageByte);
-      return encode;
+      String songInfo = new JSONObject(new String(imageByte)).getString("songInfo");
+      String imageCid = new JSONObject(songInfo).getString("imageCid");
+
+      Multihash imageFilePointer = Multihash.fromBase58(imageCid);
+      byte[] fileContents = ipfs.cat(imageFilePointer);
+
+      return Base64.getEncoder().encodeToString(fileContents);
     }catch (Exception e){
       throw new Exception("Error : communicating with the IPFS node");
     }

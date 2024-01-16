@@ -1,6 +1,5 @@
 package com.uxm.blockchain.domain.music.controller;
 
-import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.uxm.blockchain.common.message.ResponseMessage;
 import com.uxm.blockchain.domain.music.dto.request.CheckMusicChartRequest;
 import com.uxm.blockchain.domain.music.dto.request.MusicSearchRequest;
@@ -40,7 +39,7 @@ public class MusicController {
   @GetMapping("/music/chart")
   public ResponseEntity<ResponseMessage> musicChart(
       final @RequestParam(value = "genre") @Valid CheckMusicChartRequest dto
-  ) throws Exception {
+  ){
     try{
       List<CheckMusicChartResponse> result = this.musicService.checkMusicChart(
           dto);
