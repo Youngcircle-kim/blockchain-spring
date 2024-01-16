@@ -69,4 +69,7 @@ public class Music {
         this.user = user;
     }
 
+  public void setCid1(String cid1) {
+        this.cid1 = cid1;
+  }
 }

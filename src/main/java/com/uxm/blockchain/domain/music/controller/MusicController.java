@@ -1,10 +1,13 @@
 package com.uxm.blockchain.domain.music.controller;
 
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.uxm.blockchain.common.message.ResponseMessage;
 import com.uxm.blockchain.domain.music.dto.request.CheckMusicChartRequest;
 import com.uxm.blockchain.domain.music.dto.request.MusicSearchRequest;
+import com.uxm.blockchain.domain.music.dto.response.CheckMusicChartResponse;
 import com.uxm.blockchain.domain.music.service.MusicServiceImpl;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.springframework.http.HttpStatus;
@@ -37,8 +40,17 @@ public class MusicController {
   @GetMapping("/music/chart")
   public ResponseEntity<ResponseMessage> musicChart(
       final @RequestParam(value = "genre") @Valid CheckMusicChartRequest dto
-  ){
-    return null;
+  ) throws Exception {
+    try{
+      List<CheckMusicChartResponse> result = this.musicService.checkMusicChart(
+          dto);
+      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.OK, "음원 리스트 조회 성공", result);
+      return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
+    }
+    catch (Exception e) {
+      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.BAD_REQUEST, "음악 정보 검색 실패 " + e.getMessage());
+      return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
+    }
   }
 
   @GetMapping("/music/{id}")

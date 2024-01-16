@@ -11,11 +11,13 @@ import lombok.NoArgsConstructor;
 public class MusicSearchResponse {
   private long id;
   private String title;
+  private String image;
 
   @Builder
-  public MusicSearchResponse(long id, String title){
+  public MusicSearchResponse(long id, String title, String image){
     this.id = id;
     this.title = title;
+    this.image = image;
   }
 
   public static MusicSearchResponse from(Music music){
@@ -23,6 +25,7 @@ public class MusicSearchResponse {
         .builder()
         .id(music.getId())
         .title(music.getTitle())
+        .image(music.getCid1())
         .build();
   }
 

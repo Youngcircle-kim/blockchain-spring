@@ -1,14 +1,18 @@
 package com.uxm.blockchain.domain.music.service;
 
+import com.uxm.blockchain.config.IPFSConfig;
 import com.uxm.blockchain.domain.music.dto.request.CheckMusicChartRequest;
-import com.uxm.blockchain.domain.music.dto.request.MusicInfoRequest;
 import com.uxm.blockchain.domain.music.dto.request.MusicSearchRequest;
 import com.uxm.blockchain.domain.music.dto.response.CheckMusicChartResponse;
 import com.uxm.blockchain.domain.music.dto.response.MusicInfoResponse;
 import com.uxm.blockchain.domain.music.dto.response.MusicSearchResponse;
+import com.uxm.blockchain.domain.music.entity.Music;
 import com.uxm.blockchain.domain.music.repository.MusicRepository;
+import com.uxm.blockchain.domain.purchase.repository.PurchaseRepository;
+import io.ipfs.api.IPFS;
+import io.ipfs.multihash.Multihash;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,7 +28,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class MusicServiceImpl implements MusicService{
 
+  private final IPFSConfig ipfsConfig;
   private final MusicRepository musicRepository;
+  private final PurchaseRepository purchaseRepository;
 
   @Override
   public List<MusicSearchResponse> musicSearch(MusicSearchRequest dto) throws Exception {
@@ -36,9 +42,25 @@ public class MusicServiceImpl implements MusicService{
       findMusicByTitle(word).ifPresent(result::addAll);
       findMusicByArtist(word).ifPresent(result::addAll);
     }
-    if(result.isEmpty())
+    if(result.isEmpty()) {
       throw new Exception("해당하는 노래가 없습니다.");
+    }
+
+    for (MusicSearchResponse m : result){
+      m.setCid1(findImageCid(m.getCid1()));
+    }
     return result;
+  }
+  private String findImageCid(String cid1) throws Exception {
+    try{
+      IPFS ipfs = ipfsConfig.getIpfs();
+      Multihash multihash = Multihash.fromBase58(cid1);
+      byte[] imageByte = ipfs.cat(multihash);
+      String encode = Base64.getEncoder().encodeToString(imageByte);
+      return encode;
+    }catch (Exception e){
+      throw new Exception("Error : communicating with the IPFS node");
+    }
   }
 
   private Optional<List<MusicSearchResponse>> findMusicByTitle(String title) {
@@ -62,12 +84,17 @@ public class MusicServiceImpl implements MusicService{
   }
 
   @Override
-  public CheckMusicChartResponse checkMusicChart(CheckMusicChartRequest dto) throws Exception {
+  public List<CheckMusicChartResponse> checkMusicChart(CheckMusicChartRequest dto) throws Exception {
     val result = this.musicRepository.findAllByGenre(dto.getGenre());
     if (result.isEmpty()){
       throw new Exception("음원 리스트 조회 실패");
     }
-    return null;
+    for (Music m : result){
+      m.setCid1(findImageCid(m.getCid1()));
+    }
+    return result.stream()
+        .map(CheckMusicChartResponse::from)
+        .collect(Collectors.toList());
   }
 
   @Override
