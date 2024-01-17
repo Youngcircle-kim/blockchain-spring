@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService{
     User user = userRepository.save(dto.toEntity());
     user.encodePassword(passwordEncoder);
     return UserSignUpResponse.from(
-        userRepository.findAllByEmail(user.getEmail()), "회원가입 성공"
+        userRepository.findSignUpByEmail(user.getEmail()), "회원가입 성공"
     );
   }
 
