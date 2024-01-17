@@ -3,7 +3,9 @@ package com.uxm.blockchain.domain.upload.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uxm.blockchain.config.IPFSConfig;
 import com.uxm.blockchain.domain.music.repository.MusicRepository;
+import com.uxm.blockchain.domain.upload.dto.request.CheckMusicDuplicatedRequest;
 import com.uxm.blockchain.domain.upload.dto.request.UploadMetadataRequest;
+import com.uxm.blockchain.domain.upload.dto.response.CheckMusicDuplicatedResponse;
 import com.uxm.blockchain.domain.upload.dto.response.UploadMetadataResponse;
 import com.uxm.blockchain.domain.upload.dto.response.UploadMusicInfoResponse;
 import com.uxm.blockchain.domain.upload.model.Metadata;
@@ -16,6 +18,9 @@ import io.ipfs.api.MerkleNode;
 import io.ipfs.api.NamedStreamable;
 import io.ipfs.api.NamedStreamable.ByteArrayWrapper;
 import io.ipfs.multihash.Multihash;
+import jakarta.xml.bind.DatatypeConverter;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
@@ -66,6 +71,7 @@ public class UploadServiceImpl implements UploadService {
         throw new Exception("유저가 없습니다.");
       }
       String imgCid = addImageFileOnIPFS(dto.getImage().getOriginalFilename(), dto.getImage().getBytes());
+
       SongInfo songInfo = SongInfo.builder()
           .title(dto.getTitle())
           .artist(dto.getArtist())
@@ -77,6 +83,7 @@ public class UploadServiceImpl implements UploadService {
           .composerId(dto.getComposerId())
           .songWriterId(dto.getSongWriterId())
           .build();
+
       Metadata metadata = Metadata.builder()
           .uploaderId(user.get().getId())
           .uploadTime(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(new Date()))
@@ -92,7 +99,34 @@ public class UploadServiceImpl implements UploadService {
     }
   }
 
+  @Override
+  public CheckMusicDuplicatedResponse checkMusicDuplicated(CheckMusicDuplicatedRequest dto) throws Exception {
+    try{
+      byte[] buffer = dto.getMusic().getBytes();
+      String sha1 = sha1Convert(buffer);
+      boolean isDuplicated = false;
+      if (this.musicRepository.existsBySha1(sha1)){
+        isDuplicated = true;
+      }
+      return CheckMusicDuplicatedResponse
+          .builder()
+          .isDuplicated(isDuplicated)
+          .build();
+    } catch (Exception e) {
+      throw new Exception("중봅 곡 확인 실패");
+    }
+  }
 
+  private String sha1Convert(byte[] buffer) throws NoSuchAlgorithmException {
+    try{
+      MessageDigest md = MessageDigest.getInstance("SHA-1");
+      md.update(buffer);
+      byte[] digest = md.digest();
+      return DatatypeConverter.printHexBinary(digest).toLowerCase();
+    } catch (NoSuchAlgorithmException e){
+      throw new NoSuchAlgorithmException("sha1 에러");
+    }
+  }
   private String findImageByCid(String cid1) throws Exception {
     try{
       IPFS ipfs = this.ipfsConfig.getIpfs();
