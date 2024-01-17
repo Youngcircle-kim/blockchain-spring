@@ -2,10 +2,12 @@ package com.uxm.blockchain.domain.upload.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uxm.blockchain.config.IPFSConfig;
+import com.uxm.blockchain.domain.music.entity.Music;
 import com.uxm.blockchain.domain.music.repository.MusicRepository;
 import com.uxm.blockchain.domain.upload.dto.request.CheckMusicDuplicatedRequest;
 import com.uxm.blockchain.domain.upload.dto.request.UploadMetadataRequest;
 import com.uxm.blockchain.domain.upload.dto.response.CheckMusicDuplicatedResponse;
+import com.uxm.blockchain.domain.upload.dto.response.DeleteMusicResponse;
 import com.uxm.blockchain.domain.upload.dto.response.UploadMetadataResponse;
 import com.uxm.blockchain.domain.upload.dto.response.UploadMusicInfoResponse;
 import com.uxm.blockchain.domain.upload.model.Metadata;
@@ -25,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -114,6 +117,29 @@ public class UploadServiceImpl implements UploadService {
           .build();
     } catch (Exception e) {
       throw new Exception("중봅 곡 확인 실패");
+    }
+  }
+
+  @Override
+  public DeleteMusicResponse deleteMusic(long id) throws Exception {
+    try {
+      Optional<User> user = this.userRepository.findByEmail(getUserInfo().getUsername());
+      Optional<Music> music = this.musicRepository.findById(id);
+      if (user.isEmpty() || music.isEmpty()) {
+        throw new Exception("유저나 움억아 없습니다.");
+      }
+      if(Objects.equals(user.get().getId(), music.get().getUser().getId())){
+        throw new Exception("권한이 없습니다.");
+      }
+      this.musicRepository.deleteById(music.get().getId());
+
+      return DeleteMusicResponse
+          .builder()
+          .id(music.get().getId())
+          .build();
+
+    } catch (Exception e) {
+      throw new Exception("음악 삭제 도중 에러" + e.getMessage());
     }
   }
 
