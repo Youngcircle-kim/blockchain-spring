@@ -1,16 +1,21 @@
 package com.uxm.blockchain.domain.upload.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.uxm.blockchain.common.Enum.Type;
 import com.uxm.blockchain.config.IPFSConfig;
 import com.uxm.blockchain.domain.music.entity.Music;
 import com.uxm.blockchain.domain.music.repository.MusicRepository;
 import com.uxm.blockchain.domain.upload.dto.request.CheckMusicDuplicatedRequest;
 import com.uxm.blockchain.domain.upload.dto.request.UploadMetadataRequest;
+import com.uxm.blockchain.domain.upload.dto.request.UploadMusicRequest;
 import com.uxm.blockchain.domain.upload.dto.response.CheckMusicDuplicatedResponse;
 import com.uxm.blockchain.domain.upload.dto.response.DeleteMusicResponse;
 import com.uxm.blockchain.domain.upload.dto.response.UploadMetadataResponse;
 import com.uxm.blockchain.domain.upload.dto.response.UploadMusicInfoResponse;
+import com.uxm.blockchain.domain.upload.dto.response.UploadMusicResponse;
 import com.uxm.blockchain.domain.upload.model.Metadata;
+import com.uxm.blockchain.domain.upload.model.PayProperty;
+import com.uxm.blockchain.domain.upload.model.RightHolder;
 import com.uxm.blockchain.domain.upload.model.SongInfo;
 import com.uxm.blockchain.domain.user.entity.User;
 import com.uxm.blockchain.domain.user.repository.UserRepository;
@@ -21,18 +26,31 @@ import io.ipfs.api.NamedStreamable;
 import io.ipfs.api.NamedStreamable.ByteArrayWrapper;
 import io.ipfs.multihash.Multihash;
 import jakarta.xml.bind.DatatypeConverter;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.zip.GZIPOutputStream;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -43,6 +61,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @Slf4j
 public class UploadServiceImpl implements UploadService {
+
+  @Value("${IPFS_ENC_KEY}")
+  private String key;
+
+  @Value("${IPFS_ENC_IV}")
+  private String iv;
+
   private final IPFSConfig ipfsConfig;
   private final MusicRepository musicRepository;
   private final UserRepository userRepository;
@@ -143,6 +168,103 @@ public class UploadServiceImpl implements UploadService {
     }
   }
 
+  @Override
+  public UploadMusicResponse uploadMusic(UploadMusicRequest dto) throws Exception {
+    try{
+      Long id = this.userRepository.findByEmail(getUserInfo().getUsername()).get().getId();
+      Type type = this.userRepository.findByEmail(getUserInfo().getUsername()).get().getType();
+      if (type != Type.Producer){
+        throw new Exception("권한이 없습니다.");
+      }
+
+      List<Long> holder = dto.getHolder();
+      List<RightHolder> rightHolders = new ArrayList<>();
+      List<String> addresses = new ArrayList<>();
+      List<Double> proportions = new ArrayList<>();
+
+      for(long l : holder){
+        if (this.userRepository.findById(l).isEmpty()) throw new Exception("유저가 없습니다.");
+
+        val user = this.userRepository.findById(l).get();
+        rightHolders.add(RightHolder.builder()
+                .userId(user.getId())
+                .walletAddress(user.getWallet())
+                .build());
+      }
+
+      for(int i = 0; i < rightHolders.size(); i++){
+        val user = rightHolders.get(i);
+        user.setProportion(dto.getRate().get(i));
+        addresses.add(user.getWalletAddress());
+        proportions.add(dto.getRate().get(i) * 10000);
+      }
+      //web3j hashing  and contract
+      byte[] buffer = dto.getMusic().getBytes();
+      String sha1 = sha1Convert(buffer);
+
+      byte[] encrypted = encryptAES(compress(buffer));
+      String cid3 = addFileInIPFS(encrypted);
+
+      Music music = Music.builder()
+          .user(this.userRepository.findByEmail(getUserInfo().getUsername()).get())
+          .title(dto.getTitle())
+          .genre(dto.getGenre())
+          .artist(dto.getArtist())
+          .cid1(dto.getCid1())
+          .cid3("")
+          .cid3(cid3)
+          .sha1(sha1)
+          .address(dto.getSettleAddr())
+          .build();
+      Music saved = this.musicRepository.save(music);
+
+      PayProperty copyright = PayProperty.builder()
+          .songId(saved.getId())
+          .rightHolders(rightHolders)
+          .build();
+
+    } catch (Exception e) {
+      throw new Exception(e.getMessage());
+    }
+
+    return null;
+  }
+  private byte[] encryptAES(byte[] gzipped)
+      throws Exception {
+    try{
+      SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "AES");
+      IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes(StandardCharsets.UTF_8));
+      Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
+      cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
+      return cipher.doFinal(gzipped);
+    } catch (Exception e){
+      throw new Exception(e.getMessage());
+    }
+  }
+
+  private byte[] compress(byte[] buffer) throws Exception {
+    try{
+      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+      GZIPOutputStream gzipOutputStream = new GZIPOutputStream(byteArrayOutputStream);
+      gzipOutputStream.write(buffer);
+      gzipOutputStream.close();
+      return byteArrayOutputStream.toByteArray();
+    }catch (Exception e){
+      throw new Exception(e.getMessage());
+    }
+  }
+
+  private String addFileInIPFS(byte[] encrypted) throws Exception{
+    try{
+      IPFS ipfs = this.ipfsConfig.getIpfs();
+      NamedStreamable.ByteArrayWrapper file = new ByteArrayWrapper(encrypted);
+      MerkleNode cid3 = ipfs.add(file).get(0);
+      return cid3.hash.toBase58();
+
+    } catch (Exception e){
+      throw new Exception(e.getMessage());
+    }
+  }
   private String sha1Convert(byte[] buffer) throws NoSuchAlgorithmException {
     try{
       MessageDigest md = MessageDigest.getInstance("SHA-1");

@@ -73,4 +73,9 @@ public class UploadController {
       return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
     }
   }
+
+  @PostMapping("/upload")
+  public ResponseEntity<ResponseMessage> uploadMusic(){
+    return null;
+  }
 }
