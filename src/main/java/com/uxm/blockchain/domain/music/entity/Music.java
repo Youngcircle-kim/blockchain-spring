@@ -72,4 +72,6 @@ public class Music {
   public void setCid1(String cid1) {
         this.cid1 = cid1;
   }
+
+  public void setCid2(String cid2) {this.cid2 = cid2;}
 }

@@ -222,12 +222,40 @@ public class UploadServiceImpl implements UploadService {
           .songId(saved.getId())
           .rightHolders(rightHolders)
           .build();
+      String cid2 = addCopyrightIPFS(copyright);
+      updateCid2(music.getId(), cid2);
 
+      return UploadMusicResponse.builder()
+          .id(music.getId())
+          .build();
     } catch (Exception e) {
       throw new Exception(e.getMessage());
     }
+  }
+  @Transactional
+  public void updateCid2(Long id, String cid) throws Exception {
+    try {
+      Optional<Music> music = this.musicRepository.findById(id);
+      if (music.isEmpty()) {
+        throw new Exception("음악이 없습니다.");
+      }
+      music.get().setCid2(cid);
+    } catch (Exception e){
+      throw new Exception(e.getMessage());
+    }
+  }
 
-    return null;
+  private String addCopyrightIPFS(PayProperty copyright)throws Exception{
+    try{
+      ObjectMapper objectMapper = new ObjectMapper();
+      IPFS ipfs = this.ipfsConfig.getIpfs();
+      String metadataJson = objectMapper.writeValueAsString(copyright);
+      NamedStreamable.ByteArrayWrapper meta = new ByteArrayWrapper(metadataJson.getBytes());
+      MerkleNode cid = ipfs.add(meta).get(0);
+      return cid.hash.toBase58();
+    }catch (Exception e){
+      throw new Exception(e.getMessage());
+    }
   }
   private byte[] encryptAES(byte[] gzipped)
       throws Exception {
@@ -258,8 +286,8 @@ public class UploadServiceImpl implements UploadService {
     try{
       IPFS ipfs = this.ipfsConfig.getIpfs();
       NamedStreamable.ByteArrayWrapper file = new ByteArrayWrapper(encrypted);
-      MerkleNode cid3 = ipfs.add(file).get(0);
-      return cid3.hash.toBase58();
+      MerkleNode cid = ipfs.add(file).get(0);
+      return cid.hash.toBase58();
 
     } catch (Exception e){
       throw new Exception(e.getMessage());
