@@ -24,6 +24,7 @@ import io.ipfs.api.IPFS;
 import io.ipfs.api.MerkleNode;
 import io.ipfs.api.NamedStreamable;
 import io.ipfs.api.NamedStreamable.ByteArrayWrapper;
+import io.ipfs.multibase.Base58;
 import io.ipfs.multihash.Multihash;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
@@ -34,6 +35,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -314,7 +316,7 @@ public class UploadServiceImpl implements UploadService {
       Multihash imageFilePointer = Multihash.fromBase58(imageCid);
       byte[] fileContents = ipfs.cat(imageFilePointer);
 
-      return Base64.getEncoder().encodeToString(fileContents);
+      return Base58.decode(fileContents.toString()).toString();
     }catch (Exception e){
       throw new Exception("Error : Not communicating with the IPFS node");
     }
