@@ -2,6 +2,7 @@ package com.uxm.blockchain.domain.purchase.controller;
 
 import com.uxm.blockchain.common.message.ResponseMessage;
 import com.uxm.blockchain.domain.purchase.service.PurchaseService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -45,6 +47,21 @@ public class PurchaseController {
       ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.BAD_REQUEST,
           "음악 구매 내역 조회 실패 " + e.getMessage());
       return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
+    }
+  }
+
+  @GetMapping("/purchase/{id}")
+  public void downloadMusic(
+      final @PathVariable @Valid Long id,
+      final @RequestParam @Valid String token,
+      HttpServletResponse response
+  ) throws Exception {
+    try {
+      val result = this.purchaseService.downloadMusic(id, token);
+      response.setHeader("Content-Disposition", "attachment; filename=\"" + result.getFileName() + "\"");
+      response.getOutputStream().write(result.getFile());
+    } catch (Exception e) {
+      throw new Exception("음원 다운로드 실패");
     }
   }
 }

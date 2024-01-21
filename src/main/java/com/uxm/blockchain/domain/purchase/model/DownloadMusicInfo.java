@@ -4,23 +4,17 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 @Data
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MusicInfo {
-  private long id;
+public class DownloadMusicInfo {
   private String title;
   private String artist;
-  private String album;
-  private String image;
-
+  private String cid3;
   @Builder
-  public MusicInfo(long id, String title, String artist, String album, String image) {
-    this.id = id;
+  public DownloadMusicInfo(String title, String artist, String cid3) {
     this.title = title;
     this.artist = artist;
-    this.album = album;
-    this.image = image;
+    this.cid3 = cid3;
   }
 }

@@ -6,9 +6,11 @@ import com.uxm.blockchain.contracts.SettlementContract;
 import com.uxm.blockchain.contracts.SettlementContract.LogBuyerInfoEventResponse;
 import com.uxm.blockchain.domain.music.entity.Music;
 import com.uxm.blockchain.domain.music.repository.MusicRepository;
-import com.uxm.blockchain.domain.purchase.dto.response.MusicCheckingPurchasedMusicResponse;
+import com.uxm.blockchain.domain.purchase.dto.response.CheckingPurchasedMusicResponse;
+import com.uxm.blockchain.domain.purchase.dto.response.DownloadingMusicResponse;
 import com.uxm.blockchain.domain.purchase.dto.response.MusicPurchaseResponse;
 import com.uxm.blockchain.domain.purchase.entity.Purchase;
+import com.uxm.blockchain.domain.purchase.model.DownloadMusicInfo;
 import com.uxm.blockchain.domain.purchase.model.MusicInfo;
 import com.uxm.blockchain.domain.purchase.repository.PurchaseRepository;
 import com.uxm.blockchain.domain.user.entity.User;
@@ -16,14 +18,21 @@ import com.uxm.blockchain.domain.user.repository.UserRepository;
 import io.ipfs.api.IPFS;
 import io.ipfs.multibase.Base58;
 import io.ipfs.multihash.Multihash;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.zip.GZIPInputStream;
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -36,6 +45,10 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 @Transactional
 @Slf4j
 public class PurchaseService {
+  @Value("${IPFS_ENC_KEY}")
+  private String key;
+  @Value("${IPFS_ENC_IV}")
+  private String iv;
   private final IPFSConfig ipfsConfig;
   private final PurchaseRepository purchaseRepository;
   private final MusicRepository musicRepository;
@@ -89,7 +102,7 @@ public class PurchaseService {
       throw new Exception("음원 결제 실패");
     }
   }
-  public MusicCheckingPurchasedMusicResponse checkingPurchasedMusic() throws Exception {
+  public CheckingPurchasedMusicResponse checkingPurchasedMusic() throws Exception {
     try{
       List<MusicInfo> list = new ArrayList<>();
       IPFS ipfs = ipfsConfig.getIpfs();
@@ -121,12 +134,63 @@ public class PurchaseService {
             .image(decoded.toString())
             .build());
       }
-      return MusicCheckingPurchasedMusicResponse
+      return CheckingPurchasedMusicResponse
           .builder()
           .list(list)
           .build();
     } catch (Exception e){
       throw new Exception("음원 구매 내역 조회 실패");
+    }
+  }
+  public DownloadingMusicResponse downloadMusic(long musicId, String token) throws Exception {
+    try{
+      IPFS ipfs = ipfsConfig.getIpfs();
+      String email = getUserInfo().getUsername();
+      Optional<User> user = this.userRepository.findByEmail(email);
+      Optional<Music> music = this.musicRepository.findById(musicId);
+      if (user.isEmpty() || music.isEmpty()) throw new Exception("권한이 없습니다.");
+
+      Optional<Purchase> buy = this.purchaseRepository.findByUserAndMusic(user.get(),
+          music.get());
+      if (buy.isEmpty()) throw new Exception("권한이 없습니다.");
+
+      Optional<Music> music1 = this.musicRepository.findById(musicId);
+      if (music1.isEmpty()) throw new Exception("권한이 없습니다.");
+
+      DownloadMusicInfo info = DownloadMusicInfo.builder()
+          .title(music1.get().getTitle())
+          .artist(music1.get().getArtist())
+          .cid3(music1.get().getCid3())
+          .build();
+
+      String filename = info.getArtist() + "-" + info.getTitle() + ".mp3";
+
+      byte[] chunks = ipfs.cat(Multihash.fromBase58(info.getCid3()));
+      SecretKeySpec aes = new SecretKeySpec(this.key.getBytes(StandardCharsets.UTF_8), "AES");
+      IvParameterSpec ivParameterSpec = new IvParameterSpec(
+          this.iv.getBytes(StandardCharsets.UTF_8));
+
+      Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
+      cipher.init(Cipher.DECRYPT_MODE, aes, ivParameterSpec);
+
+      byte[] decrypted = cipher.doFinal(chunks);
+
+      ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(decrypted);
+      GZIPInputStream gzipInputStream = new GZIPInputStream(byteArrayInputStream);
+      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+      byte[] buffer = new byte[1024];
+      int len;
+      while ((len = gzipInputStream.read(buffer)) > 0) {
+        byteArrayOutputStream.write(buffer, 0, len);
+      }
+
+      return DownloadingMusicResponse.builder()
+          .file(byteArrayOutputStream.toByteArray())
+          .fileName(filename)
+          .build();
+    } catch (Exception e){
+      throw new Exception("음악 다운로드 실패");
     }
   }
   private UserDetails getUserInfo(){

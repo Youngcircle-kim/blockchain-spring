@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MusicCheckingPurchasedMusicResponse {
+public class CheckingPurchasedMusicResponse {
   List<MusicInfo> list;
 
   @Builder
-  public MusicCheckingPurchasedMusicResponse(List<MusicInfo> list) {
+  public CheckingPurchasedMusicResponse(List<MusicInfo> list) {
     this.list = list;
   }
 }
