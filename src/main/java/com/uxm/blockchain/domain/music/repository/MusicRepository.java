@@ -22,4 +22,6 @@ public interface MusicRepository extends JpaRepository<Music, Long> {
   boolean existsBySha1(String sha1);
   void deleteById(Long id);
 
+  Optional<Music> findByCid1(String Cid1);
+
 }

@@ -1,5 +1,7 @@
 package com.uxm.blockchain.config;
 
+import com.uxm.blockchain.contracts.NFT1155;
+import com.uxm.blockchain.contracts.SettlementContract;
 import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -8,6 +10,8 @@ import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.tx.Contract;
+import org.web3j.tx.gas.StaticGasProvider;
 
 @Configuration
 public class Web3jConfig {
@@ -29,6 +33,22 @@ public class Web3jConfig {
   public Credentials credentials() {
     BigInteger privateKeyInBT = new BigInteger(PRIVATE_KEY, 16);
     return Credentials.create(ECKeyPair.create(privateKeyInBT));
+  }
+
+  @Bean
+  public SettlementContract settlementContract(){
+    return SettlementContract.load(CONTRACT_ADDRESS, web3j(), credentials(), gasProvider());
+  }
+
+  @Bean
+  public NFT1155 nft(){
+    return NFT1155.load(CONTRACT_ADDRESS, web3j(), credentials(), gasProvider());
+  }
+
+  private StaticGasProvider gasProvider(){
+    BigInteger gasPrice = Contract.GAS_PRICE;
+    BigInteger gasLimit = Contract.GAS_LIMIT;
+    return new StaticGasProvider(gasPrice, gasLimit);
   }
 
 }
