@@ -47,12 +47,7 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 @Transactional
 @Slf4j
 public class NFTService {
-  @Value("${IPFS_ENC_KEY}")
-  private String key;
-  @Value("${IPFS_ENC_IV}")
-  private String iv;
   private final IPFSConfig ipfsConfig;
-  private final PurchaseRepository purchaseRepository;
   private final MusicRepository musicRepository;
   private final UserRepository userRepository;
   private final NFTRepository nftRepository;
@@ -211,6 +206,23 @@ public class NFTService {
       else return this.nftRepository.findByMusicId(Long.valueOf(musicId));
     }catch (Exception e){
       throw new Exception("nft 판매 목록 조회 실패");
+    }
+  }
+  public List<Nft> myPurchaseNft() throws Exception {
+    try {
+      String email = getUserInfo().getUsername();
+      Optional<User> user = this.userRepository.findByEmail(email);
+      return this.nftRepository.findByUserId(user.get().getId());
+    } catch (Exception e){
+      throw new Exception("나의 nft 판매 목록 조회 실패");
+    }
+  }
+  public Nft checkNftById(long id) throws Exception {
+    try{
+      Optional<Nft> nft = this.nftRepository.findById(id);
+      return nft.get();
+    }catch (Exception e){
+      throw new Exception("NFT 조회 실패");
     }
   }
   @Transactional

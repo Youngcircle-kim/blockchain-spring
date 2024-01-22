@@ -10,10 +10,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface NFTRepository extends JpaRepository<Nft, Long> {
+  Optional<Nft> findById(long id);
   Optional<Nft> findByUserAndMusic(User user, Music music);
   @Query("SELECT n FROM Nft n JOIN User_nft un ON n.id = un.nft.id WHERE n.music.id = :musicId")
   List<Nft> findByMusicId(@Param("musicId") Long musicId);
 
   @Query("SELECT n FROM Nft n JOIN User_nft un ON n.id = un.nft.id WHERE un.is_sale = true")
   List<Nft> findOnSale();
+
+  @Query("SELECT n FROM Nft n JOIN User_nft un ON n.id = un.nft.id WHERE un.user.id = :userId")
+  List<Nft> findByUserId(@Param("userId") Long userId);
 }

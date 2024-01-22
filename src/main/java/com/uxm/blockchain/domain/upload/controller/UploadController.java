@@ -4,8 +4,6 @@ import com.uxm.blockchain.common.message.ResponseMessage;
 import com.uxm.blockchain.domain.upload.dto.request.CheckMusicDuplicatedRequest;
 import com.uxm.blockchain.domain.upload.dto.request.UploadMetadataRequest;
 import com.uxm.blockchain.domain.upload.dto.request.UploadMusicRequest;
-import com.uxm.blockchain.domain.upload.dto.response.CheckMusicDuplicatedResponse;
-import com.uxm.blockchain.domain.upload.dto.response.UploadMetadataResponse;
 import com.uxm.blockchain.domain.upload.service.UploadServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

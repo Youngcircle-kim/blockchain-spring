@@ -1,7 +1,6 @@
 package com.uxm.blockchain.domain.nft.controller;
 
 import com.uxm.blockchain.common.message.ResponseMessage;
-import com.uxm.blockchain.domain.music.dto.request.CheckMusicChartRequest;
 import com.uxm.blockchain.domain.nft.dto.response.CheckMintedMusicResponseDto;
 import com.uxm.blockchain.domain.nft.dto.response.GenerateNFTRequestDto;
 import com.uxm.blockchain.domain.nft.dto.resquest.CheckMintedMusicRequestDto;
@@ -102,6 +101,32 @@ public class NFTController {
       return new ResponseEntity<>(responseMessage,responseMessage.getHttpStatus());
     } catch (Exception e){
       ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.BAD_REQUEST, "NFT 판매목록 조회 실패 " + e.getMessage());
+      return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
+    }
+  }
+
+  @GetMapping("/nft/my")
+  public ResponseEntity<ResponseMessage> checkMyPurchaseNft() throws Exception {
+    try {
+      val result = this.nftService.myPurchaseNft();
+      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.OK, "나의 NFT 판매목록 조회 성공", result);
+      return new ResponseEntity<>(responseMessage,responseMessage.getHttpStatus());
+    } catch (Exception e){
+      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.BAD_REQUEST, "나의 NFT 판매목록 조회 실패 " + e.getMessage());
+      return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
+    }
+  }
+
+  @GetMapping("/nft/{id}")
+  public ResponseEntity<ResponseMessage> checkNft(
+      final @PathVariable @Valid long id
+  ) throws Exception {
+    try {
+      val result = this.nftService.checkNftById(id);
+      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.OK, "NFT 조회 성공", result);
+      return new ResponseEntity<>(responseMessage,responseMessage.getHttpStatus());
+    } catch (Exception e){
+      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.BAD_REQUEST, "NFT 조회 실패 " + e.getMessage());
       return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
     }
   }
