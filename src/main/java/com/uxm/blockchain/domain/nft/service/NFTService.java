@@ -12,6 +12,7 @@ import com.uxm.blockchain.domain.music.repository.MusicRepository;
 import com.uxm.blockchain.domain.nft.dto.response.CheckMintedMusicResponseDto;
 import com.uxm.blockchain.domain.nft.dto.response.GenerateNFTRequestDto;
 import com.uxm.blockchain.domain.nft.dto.response.RegistrationNFTResponseDto;
+import com.uxm.blockchain.domain.nft.dto.response.SellNFTResponseDto;
 import com.uxm.blockchain.domain.nft.dto.response.UploadNFTMetadataResponseDto;
 import com.uxm.blockchain.domain.nft.dto.resquest.CheckMintedMusicRequestDto;
 import com.uxm.blockchain.domain.nft.dto.resquest.GenerateNFTResponseDto;
@@ -177,7 +178,7 @@ public class NFTService {
       Optional<User_nft> userNft = this.userNftRepository.findByUserAndId(user.get(), id);
       if (userNft.isEmpty()) throw new Exception("권한이 없습니다.");
 
-      User_nft user_nft = updateUserNft(userNft.get(), txId);
+      User_nft user_nft = updateUserNft1(userNft.get(), txId);
 
       return RegistrationNFTResponseDto.builder()
           .id(user_nft.getId())
@@ -186,12 +187,51 @@ public class NFTService {
       throw new Exception("NFT 판매 등록 실패");
     }
   }
+
+  public SellNFTResponseDto sellNFT(long id, String txId) throws Exception {
+    try {
+      String email = getUserInfo().getUsername();
+      Optional<User> user = this.userRepository.findByEmail(email);
+
+      boolean isValid = validateOwner(txId);
+      if (!isValid) throw new Exception("컨트랙트 정보가 올바르지 않습니다.");
+
+      Optional<User_nft> userNft = userNftRepository.findById(id);
+
+      User_nft user_nft = updateUserNft2(userNft.get(), user.get().getId().toString(), txId);
+
+      return SellNFTResponseDto.builder()
+          .id(user_nft.getId())
+          .build();
+    }catch (Exception e) {
+      throw new Exception("");
+    }
+  }
   @Transactional
-  public User_nft updateUserNft(User_nft userNft, String txId){
+  public User_nft updateUserNft2(User_nft userNft, String userId,String txId){
+    userNft.setSell_tx(userId);
+    userNft.setPurchase_tx(txId);
+    userNft.setIs_sale(false);
+    return userNft;
+  }
+  @Transactional
+  public User_nft updateUserNft1(User_nft userNft, String txId){
     userNft.setSell_tx(txId);
     userNft.setPurchase_tx(null);
     userNft.setIs_sale(true);
     return userNft;
+  }
+  private boolean validateOwner(String txId) throws Exception{
+    Web3j web3 = web3jConfig.web3j();
+    NFT1155 nft = web3jConfig.nft();
+    Optional<TransactionReceipt> transactionReceipt = web3.ethGetTransactionReceipt(txId).send()
+        .getTransactionReceipt();
+
+    if (transactionReceipt.isEmpty()) throw new Exception("트랜잭션 Receipt 실패");
+    TransactionReceipt receipt = transactionReceipt.get();
+
+    String currentOwner = nft.owner().send();
+    return currentOwner.equalsIgnoreCase(receipt.getFrom());
   }
   private boolean validate(String txId) throws Exception {
     Web3j web3 = web3jConfig.web3j();
