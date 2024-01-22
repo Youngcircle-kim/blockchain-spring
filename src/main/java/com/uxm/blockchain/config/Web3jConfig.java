@@ -2,6 +2,7 @@ package com.uxm.blockchain.config;
 
 import com.uxm.blockchain.contracts.NFT1155;
 import com.uxm.blockchain.contracts.SettlementContract;
+import com.uxm.blockchain.contracts.SettlementContractExtra;
 import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -40,6 +41,10 @@ public class Web3jConfig {
     return SettlementContract.load(CONTRACT_ADDRESS, web3j(), credentials(), gasProvider());
   }
 
+  @Bean
+  public SettlementContractExtra settlementContractExtra(){
+    return SettlementContractExtra.load(CONTRACT_ADDRESS, web3j(), credentials(), gasProvider());
+  }
   @Bean
   public NFT1155 nft(){
     return NFT1155.load(CONTRACT_ADDRESS, web3j(), credentials(), gasProvider());

@@ -34,7 +34,7 @@ public class Nft {
   private String cid;
 
   @Column(nullable = false)
-  private String tx_id; // transaction id
+  private String contractAddress;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id")
@@ -48,9 +48,9 @@ public class Nft {
   private List<User_nft> userNfts = new ArrayList<>();
 
   @Builder()
-  public Nft(String cid, String tx_id, User user, Music music){
+  public Nft(String cid, String contractAddress, User user, Music music){
     this.cid = cid;
-    this.tx_id = tx_id;
+    this.contractAddress = contractAddress;
     this.user = user;
     this.music = music;
   }

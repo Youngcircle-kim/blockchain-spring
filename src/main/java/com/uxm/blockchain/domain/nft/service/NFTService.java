@@ -2,21 +2,31 @@ package com.uxm.blockchain.domain.nft.service;
 
 import com.uxm.blockchain.config.IPFSConfig;
 import com.uxm.blockchain.config.Web3jConfig;
+import com.uxm.blockchain.contracts.NFT1155;
+import com.uxm.blockchain.contracts.NFT1155.TransferSingleEventResponse;
+import com.uxm.blockchain.contracts.SettlementContract;
+import com.uxm.blockchain.contracts.SettlementContract.LogBuyerInfoEventResponse;
+import com.uxm.blockchain.contracts.SettlementContractExtra;
 import com.uxm.blockchain.domain.music.entity.Music;
 import com.uxm.blockchain.domain.music.repository.MusicRepository;
 import com.uxm.blockchain.domain.nft.dto.response.CheckMintedMusicResponseDto;
+import com.uxm.blockchain.domain.nft.dto.response.GenerateNFTRequestDto;
 import com.uxm.blockchain.domain.nft.dto.response.UploadNFTMetadataResponseDto;
 import com.uxm.blockchain.domain.nft.dto.resquest.CheckMintedMusicRequestDto;
+import com.uxm.blockchain.domain.nft.dto.resquest.GenerateNFTResponseDto;
 import com.uxm.blockchain.domain.nft.dto.resquest.UploadNFTMetadataRequestDto;
 import com.uxm.blockchain.domain.nft.entity.Nft;
 import com.uxm.blockchain.domain.nft.repository.NFTRepository;
 import com.uxm.blockchain.domain.purchase.repository.PurchaseRepository;
 import com.uxm.blockchain.domain.user.entity.User;
 import com.uxm.blockchain.domain.user.repository.UserRepository;
+import com.uxm.blockchain.domain.user_nft.entity.User_nft;
+import com.uxm.blockchain.domain.user_nft.repository.UserNftRepository;
 import io.ipfs.api.IPFS;
 import io.ipfs.api.MerkleNode;
 import io.ipfs.api.NamedStreamable.ByteArrayWrapper;
 import io.ipfs.multihash.Multihash;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +40,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +58,7 @@ public class NFTService {
   private final UserRepository userRepository;
   private final NFTRepository nftRepository;
   private final Web3jConfig web3jConfig;
+  private final UserNftRepository userNftRepository;
 
   public CheckMintedMusicResponseDto hasMinted(CheckMintedMusicRequestDto dto) throws Exception {
     try{
@@ -121,6 +134,58 @@ public class NFTService {
     } catch (Exception e){
       throw new Exception("NFT 메타데이터 업로드 실패");
     }
+  }
+  public GenerateNFTResponseDto generateNFT(GenerateNFTRequestDto dto) throws Exception{
+    try{
+      String email = getUserInfo().getUsername();
+      Optional<User> user = this.userRepository.findByEmail(email);
+      Optional<Music> music = this.musicRepository.findById(dto.getMusicId());
+      if (user.isEmpty() || music.isEmpty()) throw new Exception("유저나 음악 정보가 올바르지 않습니다.");
+
+      boolean isValid = validate(dto.getCid(), dto.getContractAddr(), dto.getCid());
+      if (!isValid) throw new Exception("컨트랙트 정보가 올바르지 않습니다.");
+
+      Nft nft = this.nftRepository.save(Nft.builder()
+          .user(user.get())
+          .music(music.get())
+          .contractAddress(dto.getContractAddr())
+          .cid(dto.getCid())
+          .build());
+      User_nft userNft = this.userNftRepository.save(User_nft.builder()
+          .user(user.get())
+          .nft(nft)
+          .sell_tx(dto.getTxId())
+          .is_sale(true)
+          .build());
+      return GenerateNFTResponseDto.builder()
+          .nftId(nft.getId())
+          .userNftId(userNft.getId())
+          .build();
+    } catch (Exception e){
+      throw new Exception("NFT 생성 실패");
+    }
+  }
+  private boolean validate(String cid, String contractAddr, String txId) throws Exception {
+    Web3j web3 = web3jConfig.web3j();
+    NFT1155 nft = web3jConfig.nft();
+    SettlementContractExtra settlementContractExtra = web3jConfig.settlementContractExtra();
+    Optional<TransactionReceipt> transactionReceipt = web3.ethGetTransactionReceipt(txId).send()
+        .getTransactionReceipt();
+
+    if (transactionReceipt.isEmpty()) throw new Exception("트랜잭션 Receipt 실패");
+    TransactionReceipt receipt = transactionReceipt.get();
+    TransferSingleEventResponse transferSingleEventFromLog = nft.getTransferSingleEventFromLog(
+        receipt.getLogs().get(0));
+
+    if(!transferSingleEventFromLog.to.equalsIgnoreCase(contractAddr)) return false;
+
+    String addr = settlementContractExtra.nftContractAddresses(nft.owner().send()).send();
+    if (addr.equalsIgnoreCase(contractAddr)) return false;
+
+    String songCid = nft.dir().send();
+    if (!cid.equals(songCid)) return false;
+
+    return true;
   }
 
   private UserDetails getUserInfo(){

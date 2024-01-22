@@ -29,6 +29,9 @@ public class User_nft {
   @Column(nullable = false)
   private Boolean is_sale;
 
+  @Column(nullable = false)
+  private String sell_tx;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id")
   private User user;
@@ -38,8 +41,9 @@ public class User_nft {
   private Nft nft;
 
   @Builder()
-  public User_nft(Boolean is_sale, User user, Nft nft){
+  public User_nft(Boolean is_sale, String sell_tx,User user, Nft nft){
     this.is_sale = is_sale;
+    this.sell_tx = sell_tx;
     this.user = user;
     this.nft = nft;
   }
