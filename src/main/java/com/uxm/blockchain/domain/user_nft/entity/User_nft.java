@@ -15,9 +15,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class User_nft {
@@ -29,8 +31,11 @@ public class User_nft {
   @Column(nullable = false)
   private Boolean is_sale;
 
-  @Column(nullable = false)
+  @Column(nullable = true)
   private String sell_tx;
+
+  @Column(nullable = true)
+  private  String purchase_tx;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id")
@@ -41,9 +46,10 @@ public class User_nft {
   private Nft nft;
 
   @Builder()
-  public User_nft(Boolean is_sale, String sell_tx,User user, Nft nft){
+  public User_nft(Boolean is_sale, String sell_tx, String purchase_tx, User user, Nft nft){
     this.is_sale = is_sale;
     this.sell_tx = sell_tx;
+    this.purchase_tx = purchase_tx;
     this.user = user;
     this.nft = nft;
   }
