@@ -4,8 +4,6 @@ import com.uxm.blockchain.config.IPFSConfig;
 import com.uxm.blockchain.config.Web3jConfig;
 import com.uxm.blockchain.contracts.NFT1155;
 import com.uxm.blockchain.contracts.NFT1155.TransferSingleEventResponse;
-import com.uxm.blockchain.contracts.SettlementContract;
-import com.uxm.blockchain.contracts.SettlementContract.LogBuyerInfoEventResponse;
 import com.uxm.blockchain.contracts.SettlementContractExtra;
 import com.uxm.blockchain.domain.music.entity.Music;
 import com.uxm.blockchain.domain.music.repository.MusicRepository;
@@ -28,7 +26,6 @@ import io.ipfs.api.IPFS;
 import io.ipfs.api.MerkleNode;
 import io.ipfs.api.NamedStreamable.ByteArrayWrapper;
 import io.ipfs.multihash.Multihash;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
@@ -205,6 +202,15 @@ public class NFTService {
           .build();
     }catch (Exception e) {
       throw new Exception("");
+    }
+  }
+
+  public List<Nft> checkPurchasedNft(String musicId) throws Exception {
+    try{
+      if (musicId.isBlank()) return this.nftRepository.findOnSale();
+      else return this.nftRepository.findByMusicId(Long.valueOf(musicId));
+    }catch (Exception e){
+      throw new Exception("nft 판매 목록 조회 실패");
     }
   }
   @Transactional
