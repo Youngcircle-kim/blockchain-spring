@@ -254,7 +254,6 @@ public class NFTService {
   private boolean validate(String txId) throws Exception {
     Web3j web3 = web3jConfig.web3j();
     NFT1155 nft = web3jConfig.nft();
-    SettlementContractExtra settlementContractExtra = web3jConfig.settlementContractExtra();
     Optional<TransactionReceipt> transactionReceipt = web3.ethGetTransactionReceipt(txId).send()
         .getTransactionReceipt();
 

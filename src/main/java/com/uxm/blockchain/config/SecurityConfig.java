@@ -26,7 +26,8 @@ public class SecurityConfig  {
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-    return httpSecurity
+    httpSecurity.cors();
+    httpSecurity
         .httpBasic().disable()
         .csrf().disable()
         .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -35,12 +36,17 @@ public class SecurityConfig  {
         .requestMatchers("/api/v1/auth/**").permitAll()
         .requestMatchers("/swagger-ui/**").permitAll()
         .requestMatchers("/v3/api-docs/**").permitAll()
-        .requestMatchers("/api/v1/user/").hasRole("USER")
+        .requestMatchers("/api/v1/user/**").hasRole("USER")
+        .requestMatchers("/api/v1/music/**").hasRole("USER")
+        .requestMatchers("/api/v1/nft/**").hasRole("USER")
+        .requestMatchers("/api/v1/upload/**").hasRole("USER")
+        .requestMatchers("/api/v1/purchase/**").hasRole("USER")
         .anyRequest().authenticated()
         .and()
         .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
-            UsernamePasswordAuthenticationFilter.class)
-        .build();
+            UsernamePasswordAuthenticationFilter.class);
+
+    return httpSecurity.build();
   }
 
 }
