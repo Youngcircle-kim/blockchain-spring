@@ -3,6 +3,8 @@ package com.uxm.blockchain.domain.upload.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uxm.blockchain.common.Enum.Type;
 import com.uxm.blockchain.config.IPFSConfig;
+import com.uxm.blockchain.config.Web3jConfig;
+import com.uxm.blockchain.contracts.SettlementContract;
 import com.uxm.blockchain.domain.music.entity.Music;
 import com.uxm.blockchain.domain.music.repository.MusicRepository;
 import com.uxm.blockchain.domain.upload.dto.request.CheckMusicDuplicatedRequest;
@@ -28,24 +30,19 @@ import io.ipfs.multibase.Base58;
 import io.ipfs.multihash.Multihash;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.zip.GZIPOutputStream;
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +54,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.DynamicArray;
+import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.generated.Bytes32;
+import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.protocol.Web3j;
 
 @Service
 @RequiredArgsConstructor
@@ -71,6 +76,7 @@ public class UploadServiceImpl implements UploadService {
   private String iv;
 
   private final IPFSConfig ipfsConfig;
+  private final Web3jConfig web3jConfig;
   private final MusicRepository musicRepository;
   private final UserRepository userRepository;
   @Override
@@ -200,7 +206,28 @@ public class UploadServiceImpl implements UploadService {
         addresses.add(user.getWalletAddress());
         proportions.add(dto.getRate().get(i) * 10000);
       }
+
+      List<Address> addressList = new ArrayList<>();
+      for (String address : addresses) {
+        addressList.add(new Address(address));
+      }
+
+      List<Uint256> proportionList = new ArrayList<>();
+      for (Double proportion : proportions) {
+        proportionList.add(new Uint256(new BigInteger(String.valueOf(proportion))));
+      }
       //web3j hashing  and contract
+      Web3j web3j = web3jConfig.web3j();
+      String encodedFunction = FunctionEncoder.encode(new Function(
+          "keccak256",
+          Arrays.asList(new DynamicArray<>(addressList), new DynamicArray<>(proportionList)),
+          Arrays.asList(new TypeReference<Bytes32>() {})
+      ));
+
+      SettlementContract contract = web3jConfig.settlementContract();
+      byte[] keccak256hash = contract.keccak256Hash().send();
+      if (!new String(keccak256hash, StandardCharsets.UTF_8).equals(encodedFunction)) throw new Exception("올바르지 않은 컨트랙트입니다.");
+
       byte[] buffer = dto.getMusic().getBytes();
       String sha1 = sha1Convert(buffer);
 
