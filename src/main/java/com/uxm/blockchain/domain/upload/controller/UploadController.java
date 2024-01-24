@@ -76,7 +76,7 @@ public class UploadController {
 
   @PostMapping("/upload")
   public ResponseEntity<ResponseMessage> uploadMusic(
-      final @RequestBody @Valid UploadMusicRequest dto
+      final @Valid UploadMusicRequest dto
   ){
     try{
       val result = this.uploadService.uploadMusic(dto);
