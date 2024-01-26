@@ -17,21 +17,21 @@ public class UploadMusicRequest {
   private List<Long> holder;
   private List<Double> rate;
   private String cid1;
-  private String settleAddr;
-  private MultipartFile music;
+  private String address;
+  private MultipartFile file;
 
   @Builder
   public UploadMusicRequest(String title, String artist, Genre genre, List<Long> holder,
       List<Double> rate,
-      String cid1, String settleAddr,
-      MultipartFile music) {
+      String cid1, String address,
+      MultipartFile file) {
     this.title = title;
     this.artist = artist;
     this.genre = genre;
     this.holder = holder;
     this.rate = rate;
     this.cid1 = cid1;
-    this.settleAddr = settleAddr;
-    this.music = music;
+    this.address = address;
+    this.file = file;
   }
 }

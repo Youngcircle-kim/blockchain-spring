@@ -276,7 +276,7 @@ public class NFTService {
     if(!transferSingleEventFromLog.to.equalsIgnoreCase(contractAddr)) return false;
 
     String addr = settlementContractExtra.nftContractAddresses(nft.owner().send()).send();
-    if (addr.equalsIgnoreCase(contractAddr)) return false;
+    if (!addr.equalsIgnoreCase(contractAddr)) return false;
 
     String songCid = nft.dir().send();
     if (!cid.equals(songCid)) return false;

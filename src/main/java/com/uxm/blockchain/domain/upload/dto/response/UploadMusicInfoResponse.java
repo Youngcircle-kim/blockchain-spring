@@ -30,7 +30,7 @@ public class UploadMusicInfoResponse {
         .title(music.getTitle())
         .album(null)
         .artist(music.getArtist())
-        .image(music.getCid1())
+        .image(null)
         .build();
   }
 }

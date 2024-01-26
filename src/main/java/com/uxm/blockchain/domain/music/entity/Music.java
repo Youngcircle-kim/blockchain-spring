@@ -31,10 +31,10 @@ public class Music {
     @Column(unique = true, nullable = false)
     private String cid1;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = true)
     private String cid2;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = true)
     private String cid3;
 
     @Column(nullable = false)

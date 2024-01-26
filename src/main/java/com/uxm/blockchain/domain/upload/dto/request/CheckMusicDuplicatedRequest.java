@@ -8,10 +8,10 @@ import org.springframework.web.multipart.MultipartFile;
 @Data
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CheckMusicDuplicatedRequest {
-  private MultipartFile music;
+  private MultipartFile file;
 
   @Builder
-  public CheckMusicDuplicatedRequest(MultipartFile music) {
-    this.music = music;
+  public CheckMusicDuplicatedRequest(MultipartFile file) {
+    this.file = file;
   }
 }

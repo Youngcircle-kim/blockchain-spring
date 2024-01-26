@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uxm.blockchain.common.Enum.Type;
 import com.uxm.blockchain.config.IPFSConfig;
 import com.uxm.blockchain.config.Web3jConfig;
-import com.uxm.blockchain.contracts.SettlementContract;
 import com.uxm.blockchain.domain.music.entity.Music;
 import com.uxm.blockchain.domain.music.repository.MusicRepository;
 import com.uxm.blockchain.domain.upload.dto.request.CheckMusicDuplicatedRequest;
@@ -21,7 +20,6 @@ import com.uxm.blockchain.domain.upload.model.RightHolder;
 import com.uxm.blockchain.domain.upload.model.SongInfo;
 import com.uxm.blockchain.domain.user.entity.User;
 import com.uxm.blockchain.domain.user.repository.UserRepository;
-import com.uxm.blockchain.domain.user.repository.mapping.UserInfoMapping;
 import io.ipfs.api.IPFS;
 import io.ipfs.api.MerkleNode;
 import io.ipfs.api.NamedStreamable;
@@ -37,6 +35,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -48,6 +47,7 @@ import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.bouncycastle.util.encoders.UTF8;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -61,7 +61,9 @@ import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.crypto.Hash;
 import org.web3j.protocol.Web3j;
+import org.web3j.utils.Numeric;
 
 @Service
 @RequiredArgsConstructor
@@ -82,17 +84,19 @@ public class UploadServiceImpl implements UploadService {
   @Override
   public List<UploadMusicInfoResponse> uploadMusicInfo() throws Exception{
     UserDetails userDetails = getUserInfo();
-    Optional<UserInfoMapping> users = this.userRepository.findInfoByEmail(
+    Optional<User> user = this.userRepository.findByEmail(
         userDetails.getUsername());
 
-    val uploadMusics = this.musicRepository.findAllById(
-            users.get().getId()).stream()
+    val musics = this.musicRepository.findAllByUser(
+            user.get());
+    List<UploadMusicInfoResponse> uploadMusics = musics.stream()
         .map(UploadMusicInfoResponse::from)
         .toList();
 
-    for (UploadMusicInfoResponse r : uploadMusics){
-      r.setImage(findImageByCid(r.getImage()));
-      r.setAlbum(findAlbumNameByCid(r.getImage()));
+    for (int i = 0; i < musics.size(); i++) {
+      String base64Image = Base64.getEncoder().encodeToString(findImageByCid(musics.get(i).getCid3()));
+      uploadMusics.get(i).setImage(base64Image);
+      uploadMusics.get(i).setAlbum(findAlbumNameByCid(musics.get(i).getCid1()));
     }
 
     return uploadMusics;
@@ -138,7 +142,7 @@ public class UploadServiceImpl implements UploadService {
   @Override
   public CheckMusicDuplicatedResponse checkMusicDuplicated(CheckMusicDuplicatedRequest dto) throws Exception {
     try{
-      byte[] buffer = dto.getMusic().getBytes();
+      byte[] buffer = dto.getFile().getBytes();
       String sha1 = sha1Convert(buffer);
       boolean isDuplicated = false;
       if (this.musicRepository.existsBySha1(sha1)){
@@ -149,7 +153,7 @@ public class UploadServiceImpl implements UploadService {
           .isDuplicated(isDuplicated)
           .build();
     } catch (Exception e) {
-      throw new Exception("중봅 곡 확인 실패");
+      throw new Exception(e.getMessage());
     }
   }
 
@@ -161,7 +165,7 @@ public class UploadServiceImpl implements UploadService {
       if (user.isEmpty() || music.isEmpty()) {
         throw new Exception("유저나 움억아 없습니다.");
       }
-      if(Objects.equals(user.get().getId(), music.get().getUser().getId())){
+      if(!Objects.equals(user.get().getId(), music.get().getUser().getId())){
         throw new Exception("권한이 없습니다.");
       }
       this.musicRepository.deleteById(music.get().getId());
@@ -201,36 +205,39 @@ public class UploadServiceImpl implements UploadService {
       }
 
       for(int i = 0; i < rightHolders.size(); i++){
-        log.info("rightHolder : {}", rightHolders.get(i));
         val user = rightHolders.get(i);
         user.setProportion(dto.getRate().get(i));
         addresses.add(user.getWalletAddress());
         proportions.add(dto.getRate().get(i) * 10000);
       }
 
-      List<Address> addressList = new ArrayList<>();
-      for (String address : addresses) {
-        addressList.add(new Address(address));
-      }
+//      List<Address> addressList = new ArrayList<>();
+//      for (String address : addresses) {
+//        addressList.add(new Address(address));
+//      }
+//
+//      List<Uint256> proportionList = new ArrayList<>();
+//      for (Double proportion : proportions) {
+//        long l = proportion.longValue();
+//        proportionList.add(new Uint256(new BigInteger(Long.toString(l))));
+//      }
+//      //web3j hashing  and contract
+//      Function function = new Function(
+//          "keccak256Hash",
+//          Arrays.asList(new DynamicArray<>(addressList), new DynamicArray<>(proportionList)),
+//          Arrays.asList(new TypeReference<Bytes32>() {
+//          })
+//      );
+//      String encode = FunctionEncoder.encode(function);
+//
+//      SettlementContractExtra contract = web3jConfig.settlementContractExtra();
+//      byte[] keccak256hash = contract.keccak256Hash().send();
+//      log.info("keccak256hash length : {}", keccak256hash.length);
+//      log.info("keccak256hash : {}", Numeric.toHexString(Hash.sha3(keccak256hash), 0, 32, false));
+//      log.info("encode : {}", Numeric.toHexString(Hash.sha3(encode.getBytes(StandardCharsets.UTF_8)), 0, 32, false));
+//      if (!new String(keccak256hash, StandardCharsets.UTF_8).equals(encode)) throw new Exception("올바르지 않은 컨트랙트입니다.");
 
-      List<Uint256> proportionList = new ArrayList<>();
-      for (Double proportion : proportions) {
-        long l = proportion.longValue();
-        proportionList.add(new Uint256(new BigInteger(Long.toString(l))));
-      }
-      //web3j hashing  and contract
-      String encodedFunction = FunctionEncoder.encode(new Function(
-          "keccak256",
-          Arrays.asList(new DynamicArray<>(addressList), new DynamicArray<>(proportionList)),
-          Arrays.asList(new TypeReference<Bytes32>() {})
-      ));
-
-      SettlementContract contract = web3jConfig.settlementContract();
-      byte[] keccak256hash = contract.keccak256Hash().send();
-
-      if (!new String(keccak256hash, StandardCharsets.UTF_8).equals(encodedFunction)) throw new Exception("올바르지 않은 컨트랙트입니다.");
-
-      byte[] buffer = dto.getMusic().getBytes();
+      byte[] buffer = dto.getFile().getBytes();
       String sha1 = sha1Convert(buffer);
 
       byte[] encrypted = encryptAES(compress(buffer));
@@ -242,10 +249,10 @@ public class UploadServiceImpl implements UploadService {
           .genre(dto.getGenre())
           .artist(dto.getArtist())
           .cid1(dto.getCid1())
-          .cid3("")
+          .cid2("")
           .cid3(cid3)
           .sha1(sha1)
-          .address(dto.getSettleAddr())
+          .address(dto.getAddress())
           .build();
       Music saved = this.musicRepository.save(music);
 
@@ -334,18 +341,12 @@ public class UploadServiceImpl implements UploadService {
       throw new NoSuchAlgorithmException("sha1 에러");
     }
   }
-  private String findImageByCid(String cid1) throws Exception {
+  private byte[] findImageByCid(String cid1) throws Exception {
     try{
       IPFS ipfs = this.ipfsConfig.getIpfs();
       Multihash multihash = Multihash.fromBase58(cid1);
       byte[] imageByte = ipfs.cat(multihash);
-      String songInfo = new JSONObject(new String(imageByte)).getString("songInfo");
-      String imageCid = new JSONObject(songInfo).getString("imageCid");
-
-      Multihash imageFilePointer = Multihash.fromBase58(imageCid);
-      byte[] fileContents = ipfs.cat(imageFilePointer);
-
-      return Base58.decode(fileContents.toString()).toString();
+      return imageByte;
     }catch (Exception e){
       throw new Exception("Error : Not communicating with the IPFS node");
     }
@@ -355,11 +356,12 @@ public class UploadServiceImpl implements UploadService {
     try{
       IPFS ipfs = this.ipfsConfig.getIpfs();
       Multihash multihash = Multihash.fromBase58(cid1);
-      byte[] imageByte = ipfs.cat(multihash);
-      String songInfo = new JSONObject(new String(imageByte)).getString("songInfo");
-      return new JSONObject(songInfo).getString("album");
+      byte[] file = ipfs.cat(multihash);
+      JSONObject jsonObject = new JSONObject(new String(file, StandardCharsets.UTF_8));
+      JSONObject songInfo = jsonObject.getJSONObject("songInfo");
+      return songInfo.getString("album");
     } catch (Exception e){
-      throw new Exception("Error : Not communicating with the IPFS node");
+      throw new Exception(e.getMessage());
     }
   }
   private String addImageFileOnIPFS(String originalName, byte[] imgBuffer) throws Exception {

@@ -22,8 +22,11 @@ public class Web3jConfig {
   @Value("${metamask.PRIVATE_KEY}")
   private String PRIVATE_KEY;
 
-  @Value("${metamask.CONTRACT_ADDRESS}")
-  private String CONTRACT_ADDRESS;
+  @Value("${metamask.NFT_CONTRACT_ADDRESS}")
+  private String NFT_CONTRACT_ADDRESS;
+
+  @Value("${metamask.Settlement_CONTRACT_ADDRESS}")
+  private String SETTLEMENT_CONTRACT_ADDRESS;
 
   @Bean
   public Web3j web3j() {
@@ -35,19 +38,19 @@ public class Web3jConfig {
     BigInteger privateKeyInBT = new BigInteger(PRIVATE_KEY, 16);
     return Credentials.create(ECKeyPair.create(privateKeyInBT));
   }
-
+  //SettlementContract의 수정 버전이 Extra라 기존 Settlement Contract는 사용 안함.
   @Bean
   public SettlementContract settlementContract(){
-    return SettlementContract.load(CONTRACT_ADDRESS, web3j(), credentials(), gasProvider());
+    return SettlementContract.load(SETTLEMENT_CONTRACT_ADDRESS, web3j(), credentials(), gasProvider());
   }
 
   @Bean
   public SettlementContractExtra settlementContractExtra(){
-    return SettlementContractExtra.load(CONTRACT_ADDRESS, web3j(), credentials(), gasProvider());
+    return SettlementContractExtra.load(SETTLEMENT_CONTRACT_ADDRESS, web3j(), credentials(), gasProvider());
   }
   @Bean
   public NFT1155 nft(){
-    return NFT1155.load(CONTRACT_ADDRESS, web3j(), credentials(), gasProvider());
+    return NFT1155.load(NFT_CONTRACT_ADDRESS, web3j(), credentials(), gasProvider());
   }
 
   private StaticGasProvider gasProvider(){
