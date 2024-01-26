@@ -201,6 +201,7 @@ public class UploadServiceImpl implements UploadService {
       }
 
       for(int i = 0; i < rightHolders.size(); i++){
+        log.info("rightHolder : {}", rightHolders.get(i));
         val user = rightHolders.get(i);
         user.setProportion(dto.getRate().get(i));
         addresses.add(user.getWalletAddress());
@@ -214,10 +215,10 @@ public class UploadServiceImpl implements UploadService {
 
       List<Uint256> proportionList = new ArrayList<>();
       for (Double proportion : proportions) {
-        proportionList.add(new Uint256(new BigInteger(String.valueOf(proportion))));
+        long l = proportion.longValue();
+        proportionList.add(new Uint256(new BigInteger(Long.toString(l))));
       }
       //web3j hashing  and contract
-      Web3j web3j = web3jConfig.web3j();
       String encodedFunction = FunctionEncoder.encode(new Function(
           "keccak256",
           Arrays.asList(new DynamicArray<>(addressList), new DynamicArray<>(proportionList)),
@@ -226,6 +227,7 @@ public class UploadServiceImpl implements UploadService {
 
       SettlementContract contract = web3jConfig.settlementContract();
       byte[] keccak256hash = contract.keccak256Hash().send();
+
       if (!new String(keccak256hash, StandardCharsets.UTF_8).equals(encodedFunction)) throw new Exception("올바르지 않은 컨트랙트입니다.");
 
       byte[] buffer = dto.getMusic().getBytes();
