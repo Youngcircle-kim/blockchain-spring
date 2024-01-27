@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
 public class ResponseMessage {
 
   private HttpStatus httpStatus;
-  private String resultMessage;
+  private String message;
 
   @JsonInclude(Include.NON_NULL)
   private Object data;
@@ -20,13 +20,13 @@ public class ResponseMessage {
   public static ResponseMessage of(HttpStatus httpStatus, String resultMessage){
     return ResponseMessage.builder()
         .httpStatus(httpStatus)
-        .resultMessage(resultMessage)
+        .message(resultMessage)
         .build();
   }
   public static ResponseMessage of(HttpStatus httpStatus, String resultMessage,Object data){
     return ResponseMessage.builder()
         .httpStatus(httpStatus)
-        .resultMessage(resultMessage)
+        .message(resultMessage)
         .data(data)
         .build();
   }

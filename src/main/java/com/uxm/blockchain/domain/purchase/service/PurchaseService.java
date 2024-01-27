@@ -66,12 +66,10 @@ public class PurchaseService {
       SettlementContract contract = web3jConfig.settlementContract();
       Optional<TransactionReceipt> transactionReceipt = web3j.ethGetTransactionReceipt(hash).send()
           .getTransactionReceipt();
-
       if (transactionReceipt.isEmpty()) throw new Exception("Receipt 없음");
       TransactionReceipt receipt = transactionReceipt.get();
       LogBuyerInfoEventResponse logBuyerInfoEventFromLog = contract.getLogBuyerInfoEventFromLog(
           receipt.getLogs().get(0));
-
       String buyer = logBuyerInfoEventFromLog.buyer;
       List<byte[]> songCidBytes = logBuyerInfoEventFromLog.songCid;
 
@@ -80,7 +78,6 @@ public class PurchaseService {
         songCidBuilder.append(new String(bytes, StandardCharsets.UTF_8));
       }
       String songCid = songCidBuilder.toString();
-
       Optional<User> buyerUser = this.userRepository.findByWallet(buyer);
       Optional<Music> boughtMusic = this.musicRepository.findByCid1(songCid);
 
@@ -99,7 +96,7 @@ public class PurchaseService {
           .id(purchase.getId())
           .build();
     } catch (Exception e){
-      throw new Exception("음원 결제 실패");
+      throw new Exception("음원 결제 실패 " + e.getMessage());
     }
   }
   public CheckingPurchasedMusicResponse checkingPurchasedMusic() throws Exception {
@@ -119,8 +116,8 @@ public class PurchaseService {
         String meta = new String(chunks, StandardCharsets.UTF_8);
 
         JSONObject jsonObject = new JSONObject(meta);
-        String songInfo = jsonObject.getString("songInfo");
-        String album = new JSONObject(songInfo).getString("album");
+        JSONObject songInfo = jsonObject.getJSONObject("songInfo");
+        String album =songInfo.getString("album");
 
         String imageCid = new JSONObject(songInfo).getString("imageCid");
         byte[] image = ipfs.cat(Multihash.fromBase58(imageCid));
