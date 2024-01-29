@@ -44,6 +44,7 @@ public class Music {
     private String address;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Genre genre;
 
     @ManyToOne(fetch = FetchType.LAZY)
