@@ -22,12 +22,6 @@ public class Web3jConfig {
   @Value("${metamask.PRIVATE_KEY}")
   private String PRIVATE_KEY;
 
-  @Value("${metamask.NFT_CONTRACT_ADDRESS}")
-  private String NFT_CONTRACT_ADDRESS;
-
-  @Value("${metamask.Settlement_CONTRACT_ADDRESS}")
-  private String SETTLEMENT_CONTRACT_ADDRESS;
-
   @Bean
   public Web3j web3j() {
     return Web3j.build(new HttpService(INFURA_API_URL));
