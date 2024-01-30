@@ -13,15 +13,15 @@ import com.uxm.blockchain.domain.user.dto.request.UserSignUpRequest;
 import com.uxm.blockchain.domain.user.dto.request.UserUpdateRequest;
 
 public interface UserService {
-  public UserSignUpResponse signUp(UserSignUpRequest dto);
+  UserSignUpResponse signUp(UserSignUpRequest dto);
 
-  public UserCheckWalletResponse checkWallet(UserCheckWalletRequest dto);
+  UserCheckWalletResponse checkWallet(UserCheckWalletRequest dto);
 
-  public UserSignInResponse signIn(UserSignInRequest dto);
+  UserSignInResponse signIn(UserSignInRequest dto);
 
-  public UserInfoResponse myInfo();
+  UserInfoResponse myInfo();
 
-  public UserUpdateResponse updateInfo(UserUpdateRequest dto) throws Exception;
+  UserUpdateResponse updateInfo(UserUpdateRequest dto) throws Exception;
 
-  public UserFindOneResponse findOneInfo(UserFindOneRequest dto) throws Exception;
+  UserFindOneResponse findOneInfo(UserFindOneRequest dto) throws Exception;
 }

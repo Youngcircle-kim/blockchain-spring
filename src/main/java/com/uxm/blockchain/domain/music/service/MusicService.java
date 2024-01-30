@@ -9,9 +9,9 @@ import java.util.List;
 
 public interface MusicService {
 
-  public List<MusicSearchResponse> musicSearch(MusicSearchRequest dto) throws Exception;
+  List<MusicSearchResponse> musicSearch(MusicSearchRequest dto) throws Exception;
 
-  public List<CheckMusicChartResponse> checkMusicChart(CheckMusicChartRequest dto) throws Exception;
+  List<CheckMusicChartResponse> checkMusicChart(CheckMusicChartRequest dto) throws Exception;
 
-  public MusicInfoResponse musicInfo(Long id) throws Exception;
+  MusicInfoResponse musicInfo(Long id) throws Exception;
 }

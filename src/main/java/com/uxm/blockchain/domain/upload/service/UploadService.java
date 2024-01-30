@@ -12,9 +12,9 @@ import java.util.List;
 
 
 public interface UploadService {
-  public List<UploadMusicInfoResponse> uploadMusicInfo() throws Exception;
-  public UploadMetadataResponse uploadMetadata(UploadMetadataRequest dto)throws Exception;
-  public CheckMusicDuplicatedResponse checkMusicDuplicated(CheckMusicDuplicatedRequest dto) throws Exception;
-  public DeleteMusicResponse deleteMusic(long id) throws Exception;
-  public UploadMusicResponse uploadMusic(UploadMusicRequest dto) throws Exception;
+  List<UploadMusicInfoResponse> uploadMusicInfo() throws Exception;
+  UploadMetadataResponse uploadMetadata(UploadMetadataRequest dto)throws Exception;
+  CheckMusicDuplicatedResponse checkMusicDuplicated(CheckMusicDuplicatedRequest dto) throws Exception;
+  DeleteMusicResponse deleteMusic(long id) throws Exception;
+  UploadMusicResponse uploadMusic(UploadMusicRequest dto) throws Exception;
 }
