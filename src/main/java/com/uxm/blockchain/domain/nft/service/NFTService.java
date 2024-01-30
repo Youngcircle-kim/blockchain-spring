@@ -74,7 +74,7 @@ public class NFTService {
   public UploadNFTMetadataResponseDto uploadMetaNFT(UploadNFTMetadataRequestDto dto)
       throws Exception {
     try{
-      IPFS ipfs = ipfsConfig.getIpfs();
+      IPFS ipfs = ipfsConfig.IPFS();
       String email = getUserInfo().getUsername();
       Optional<User> user = this.userRepository.findByEmail(email);
       if (user.isEmpty()) throw new Exception("유저 조회 실페");

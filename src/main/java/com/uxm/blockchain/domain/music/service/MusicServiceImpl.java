@@ -55,7 +55,7 @@ public class MusicServiceImpl implements MusicService{
   }
   private String findImageCid(String cid1) throws Exception {
     try{
-      IPFS ipfs = this.ipfsConfig.getIpfs();
+      IPFS ipfs = this.ipfsConfig.IPFS();
       Multihash multihash = Multihash.fromBase58(cid1);
       byte[] imageByte = ipfs.cat(multihash);
       String songInfo = new JSONObject(new String(imageByte)).getString("songInfo");

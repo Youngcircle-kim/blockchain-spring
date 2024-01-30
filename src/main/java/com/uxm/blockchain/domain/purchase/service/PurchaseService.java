@@ -109,7 +109,7 @@ public class PurchaseService {
   public CheckingPurchasedMusicResponse checkingPurchasedMusic() throws Exception {
     try{
       List<MusicInfo> list = new ArrayList<>();
-      IPFS ipfs = ipfsConfig.getIpfs();
+      IPFS ipfs = ipfsConfig.IPFS();
       String email = getUserInfo().getUsername();
       Optional<User> user = this.userRepository.findByEmail(email);
       if (user.isEmpty()) throw new Exception("권한이 없습니다.");
@@ -148,7 +148,7 @@ public class PurchaseService {
   }
   public DownloadingMusicResponse downloadMusic(long musicId, String token) throws Exception {
     try{
-      IPFS ipfs = ipfsConfig.getIpfs();
+      IPFS ipfs = ipfsConfig.IPFS();
       String email = getUserInfo().getUsername();
       Optional<User> user = this.userRepository.findByEmail(email);
       Optional<Music> music = this.musicRepository.findById(musicId);

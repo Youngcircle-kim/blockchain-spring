@@ -286,7 +286,7 @@ public class UploadServiceImpl implements UploadService {
   private String addCopyrightIPFS(PayProperty copyright)throws Exception{
     try{
       ObjectMapper objectMapper = new ObjectMapper();
-      IPFS ipfs = this.ipfsConfig.getIpfs();
+      IPFS ipfs = this.ipfsConfig.IPFS();
       String metadataJson = objectMapper.writeValueAsString(copyright);
       NamedStreamable.ByteArrayWrapper meta = new ByteArrayWrapper(metadataJson.getBytes());
       MerkleNode cid = ipfs.add(meta).get(0);
@@ -322,7 +322,7 @@ public class UploadServiceImpl implements UploadService {
 
   private String addFileInIPFS(byte[] encrypted) throws Exception{
     try{
-      IPFS ipfs = this.ipfsConfig.getIpfs();
+      IPFS ipfs = this.ipfsConfig.IPFS();
       NamedStreamable.ByteArrayWrapper file = new ByteArrayWrapper(encrypted);
       MerkleNode cid = ipfs.add(file).get(0);
       return cid.hash.toBase58();
@@ -343,7 +343,7 @@ public class UploadServiceImpl implements UploadService {
   }
   private byte[] findImageByCid(String cid1) throws Exception {
     try{
-      IPFS ipfs = this.ipfsConfig.getIpfs();
+      IPFS ipfs = this.ipfsConfig.IPFS();
       Multihash multihash = Multihash.fromBase58(cid1);
       byte[] imageByte = ipfs.cat(multihash);
       return imageByte;
@@ -354,7 +354,7 @@ public class UploadServiceImpl implements UploadService {
 
   private String findAlbumNameByCid(String cid1) throws Exception {
     try{
-      IPFS ipfs = this.ipfsConfig.getIpfs();
+      IPFS ipfs = this.ipfsConfig.IPFS();
       Multihash multihash = Multihash.fromBase58(cid1);
       byte[] file = ipfs.cat(multihash);
       JSONObject jsonObject = new JSONObject(new String(file, StandardCharsets.UTF_8));
@@ -366,7 +366,7 @@ public class UploadServiceImpl implements UploadService {
   }
   private String addImageFileOnIPFS(String originalName, byte[] imgBuffer) throws Exception {
     try{
-      IPFS ipfs = this.ipfsConfig.getIpfs();
+      IPFS ipfs = this.ipfsConfig.IPFS();
       NamedStreamable.ByteArrayWrapper file = new ByteArrayWrapper(originalName, imgBuffer);
       MerkleNode addResult = ipfs.add(file).get(0);
       return addResult.hash.toBase58();
@@ -378,7 +378,7 @@ public class UploadServiceImpl implements UploadService {
   private String addMetaInIPFS(Metadata metadata) throws Exception {
     try{
       ObjectMapper objectMapper = new ObjectMapper();
-      IPFS ipfs = this.ipfsConfig.getIpfs();
+      IPFS ipfs = this.ipfsConfig.IPFS();
       String metadataJson = objectMapper.writeValueAsString(metadata);
       NamedStreamable.ByteArrayWrapper meta = new ByteArrayWrapper(metadataJson.getBytes());
       MerkleNode metadataCid = ipfs.add(meta).get(0);
