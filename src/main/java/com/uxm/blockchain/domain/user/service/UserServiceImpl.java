@@ -131,10 +131,14 @@ public class UserServiceImpl implements UserService{
 
   @Override
   public UserFindOneResponse findOneInfo(UserFindOneRequest dto) throws Exception {
-    User user = userRepository.findByEmail(dto.getSearch())
-        .orElseThrow(() -> new Exception("존재하지 않는 유저입니다."));
+    try {
+      User user = this.userRepository.findByEmailLike(dto.getSearch())
+          .orElseThrow(() -> new Exception("존재하지 않는 유저입니다."));
 
-    return UserFindOneResponse.from(user);
+      return UserFindOneResponse.from(user);
+    } catch (Exception e){
+      throw new Exception(e.getMessage());
+    }
   }
 
 

@@ -10,6 +10,7 @@ import com.uxm.blockchain.domain.user.dto.request.UserUpdateRequest;
 import com.uxm.blockchain.domain.user.service.UserServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/api/v1")
 public class UserController {
 
@@ -71,21 +73,7 @@ public class UserController {
     responseMessage = ResponseMessage.of(HttpStatus.OK, result.getMessage(), result.getJwtToken());
     return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
   }
-  @GetMapping("/user?search={search}")
-  public ResponseEntity<ResponseMessage> userFindOneInfo(
-      final @RequestParam("search") @Valid UserFindOneRequest dto
-  ){
-    try {
-      val result = this.userService.findOneInfo(dto);
-      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.OK, "유저 검색 성공", result);
-      return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
-    } catch (Exception e){
-      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.BAD_REQUEST, "유저 검색 실패");
-      return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
-    }
-  }
-
-  @GetMapping("/user")
+  @GetMapping("/user/")
   public ResponseEntity<ResponseMessage> userInfo(){
     UserInfoResponse result = this.userService.myInfo();
     ResponseMessage responseMessage;
@@ -96,6 +84,21 @@ public class UserController {
     responseMessage = ResponseMessage.of(HttpStatus.OK, result.getMessage(), result.getUser());
     return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
 
+  }
+
+  @GetMapping("/user")
+  public ResponseEntity<ResponseMessage> userFindOneInfo(
+      final @RequestParam("search") @Valid UserFindOneRequest dto
+  ) throws Exception {
+    try {
+      log.info("dto : {}", dto);
+      val result = this.userService.findOneInfo(dto);
+      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.OK, "유저 검색 성공", result);
+      return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
+    } catch (Exception e){
+      ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.BAD_REQUEST, "유저 검색 실패");
+      return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
+    }
   }
   @PutMapping("/user")
   public ResponseEntity<ResponseMessage> updateUserInfo(
