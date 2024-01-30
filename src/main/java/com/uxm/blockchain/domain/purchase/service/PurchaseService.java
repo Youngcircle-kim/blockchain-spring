@@ -69,7 +69,7 @@ public class PurchaseService {
 
       Web3j web3j = web3jConfig.web3j();
       SettlementContractExtra contract = web3jContractProvider.settlementContractExtra(
-          music.get().getAddress(), web3j);
+          music.get().getAddress1(), web3j);
       Optional<TransactionReceipt> transactionReceipt = web3j.ethGetTransactionReceipt(hash).send()
           .getTransactionReceipt();
       if (transactionReceipt.isEmpty()) throw new Exception("Receipt 없음");

@@ -252,7 +252,7 @@ public class UploadServiceImpl implements UploadService {
           .cid2("")
           .cid3(cid3)
           .sha1(sha1)
-          .address(dto.getAddress())
+          .address1(dto.getAddress())
           .build();
       Music saved = this.musicRepository.save(music);
 

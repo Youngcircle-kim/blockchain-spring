@@ -41,7 +41,7 @@ public class Music {
     private String sha1;
 
     @Column(nullable = false)
-    private String address;
+    private String address1;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -58,14 +58,14 @@ public class Music {
     private List<Purchase> purchases = new ArrayList<>();
 
     @Builder()
-    public Music(String title, String artist, String cid1, String cid2, String cid3, String sha1, String address, Genre genre, User user){
+    public Music(String title, String artist, String cid1, String cid2, String cid3, String sha1, String address1, Genre genre, User user){
         this.title = title;
         this.artist = artist;
         this.cid1 = cid1;
         this.cid2 = cid2;
         this.cid3 = cid3;
         this.sha1 = sha1;
-        this.address = address;
+        this.address1 = address1;
         this.genre = genre;
         this.user = user;
     }

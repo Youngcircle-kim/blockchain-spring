@@ -1,5 +1,6 @@
 package com.uxm.blockchain.domain.music.controller;
 
+import com.uxm.blockchain.common.Enum.Genre;
 import com.uxm.blockchain.common.message.ResponseMessage;
 import com.uxm.blockchain.domain.music.dto.request.CheckMusicChartRequest;
 import com.uxm.blockchain.domain.music.dto.request.MusicSearchRequest;
@@ -8,6 +9,7 @@ import com.uxm.blockchain.domain.music.service.MusicServiceImpl;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
+@Slf4j
 public class MusicController {
 
   private final MusicServiceImpl musicService;
@@ -38,11 +41,12 @@ public class MusicController {
   }
   @GetMapping("/music/chart")
   public ResponseEntity<ResponseMessage> musicChart(
-      final @RequestParam(value = "genre") @Valid CheckMusicChartRequest dto
+      final @RequestParam(value = "genre") Genre genre
   ){
     try{
+      log.info("dto : {}", genre);
       List<CheckMusicChartResponse> result = this.musicService.checkMusicChart(
-          dto);
+          genre);
       ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.OK, "음원 리스트 조회 성공", result);
       return new ResponseEntity<>(responseMessage, responseMessage.getHttpStatus());
     }
