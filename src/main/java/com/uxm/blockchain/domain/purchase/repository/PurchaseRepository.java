@@ -9,5 +9,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PurchaseRepository extends JpaRepository<Purchase, Long> {
   List<Purchase> findAllByUser(User user);
-  Optional<Purchase> findByUserAndMusic(User user, Music music);
+  Optional<Purchase> findByUser_IdAndMusic_Id(Long userId, Long musicId);
 }

@@ -48,6 +48,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.bouncycastle.util.encoders.UTF8;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -260,7 +261,12 @@ public class UploadServiceImpl implements UploadService {
           .songId(saved.getId())
           .rightHolders(rightHolders)
           .build();
-      String cid2 = addCopyrightIPFS(copyright);
+      JSONArray rightHolder = new JSONArray(rightHolders);
+      JSONObject payProperty = new JSONObject()
+          .put("songId",saved.getId())
+              .put("rightHolders", rightHolder);
+      log.info("payment : {}", new JSONObject().put("payProperty", payProperty).toString());
+      String cid2 = addCopyrightIPFS(new JSONObject().put("payProperty", payProperty).toString());
       updateCid2(music.getId(), cid2);
 
       return UploadMusicResponse.builder()
@@ -283,12 +289,10 @@ public class UploadServiceImpl implements UploadService {
     }
   }
 
-  private String addCopyrightIPFS(PayProperty copyright)throws Exception{
+  private String addCopyrightIPFS(String copyright)throws Exception{
     try{
-      ObjectMapper objectMapper = new ObjectMapper();
       IPFS ipfs = this.ipfsConfig.IPFS();
-      String metadataJson = objectMapper.writeValueAsString(copyright);
-      NamedStreamable.ByteArrayWrapper meta = new ByteArrayWrapper(metadataJson.getBytes());
+      NamedStreamable.ByteArrayWrapper meta = new ByteArrayWrapper(copyright.getBytes());
       MerkleNode cid = ipfs.add(meta).get(0);
       return cid.hash.toBase58();
     }catch (Exception e){

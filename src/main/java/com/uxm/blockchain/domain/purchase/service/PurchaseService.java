@@ -69,7 +69,7 @@ public class PurchaseService {
 
       Web3j web3j = web3jConfig.web3j();
       SettlementContractExtra contract = web3jContractProvider.settlementContractExtra(
-          music.get().getAddress1(), web3j);
+          music.get().getAddress1(), web3j, web3jConfig);
       Optional<TransactionReceipt> transactionReceipt = web3j.ethGetTransactionReceipt(hash).send()
           .getTransactionReceipt();
       if (transactionReceipt.isEmpty()) throw new Exception("Receipt 없음");
@@ -153,22 +153,19 @@ public class PurchaseService {
       Optional<User> user = this.userRepository.findByEmail(email);
       Optional<Music> music = this.musicRepository.findById(musicId);
       if (user.isEmpty() || music.isEmpty()) throw new Exception("권한이 없습니다.");
-
-      Optional<Purchase> buy = this.purchaseRepository.findByUserAndMusic(user.get(),
-          music.get());
+      log.info("q : {}", this.purchaseRepository.findByUser_IdAndMusic_Id(user.get().getId(),
+          music.get().getId()));
+      Optional<Purchase> buy = this.purchaseRepository.findByUser_IdAndMusic_Id(user.get().getId(),
+          music.get().getId());
       if (buy.isEmpty()) throw new Exception("권한이 없습니다.");
-
       Optional<Music> music1 = this.musicRepository.findById(musicId);
       if (music1.isEmpty()) throw new Exception("권한이 없습니다.");
-
       DownloadMusicInfo info = DownloadMusicInfo.builder()
           .title(music1.get().getTitle())
           .artist(music1.get().getArtist())
           .cid3(music1.get().getCid3())
           .build();
-
       String filename = info.getArtist() + "-" + info.getTitle() + ".mp3";
-
       byte[] chunks = ipfs.cat(Multihash.fromBase58(info.getCid3()));
       SecretKeySpec aes = new SecretKeySpec(this.key.getBytes(StandardCharsets.UTF_8), "AES");
       IvParameterSpec ivParameterSpec = new IvParameterSpec(
@@ -188,13 +185,13 @@ public class PurchaseService {
       while ((len = gzipInputStream.read(buffer)) > 0) {
         byteArrayOutputStream.write(buffer, 0, len);
       }
-
+      log.info("file : {}",byteArrayOutputStream.toByteArray());
       return DownloadingMusicResponse.builder()
           .file(byteArrayOutputStream.toByteArray())
           .fileName(filename)
           .build();
     } catch (Exception e){
-      throw new Exception("음악 다운로드 실패");
+      throw new Exception("음악 다운로드 실패" + e.getMessage());
     }
   }
   private UserDetails getUserInfo(){

@@ -5,6 +5,7 @@ import com.uxm.blockchain.domain.purchase.service.PurchaseService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
+@Slf4j
 public class PurchaseController {
   private final PurchaseService purchaseService;
 
@@ -57,6 +59,7 @@ public class PurchaseController {
       HttpServletResponse response
   ) throws Exception {
     try {
+      log.info("hi am controller");
       val result = this.purchaseService.downloadMusic(id, token);
       response.setHeader("Content-Disposition", "attachment; filename=\"" + result.getFileName() + "\"");
       response.getOutputStream().write(result.getFile());

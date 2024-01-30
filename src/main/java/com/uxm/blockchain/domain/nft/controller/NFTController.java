@@ -27,8 +27,9 @@ public class NFTController {
   private final NFTService nftService;
 
   @GetMapping("/nft/hasMinted")
-  public ResponseEntity<ResponseMessage> hasMinted(CheckMintedMusicRequestDto dto)
-      throws Exception {
+  public ResponseEntity<ResponseMessage> hasMinted(
+      @RequestBody @Valid CheckMintedMusicRequestDto dto
+  ) throws Exception {
     try {
       CheckMintedMusicResponseDto result = this.nftService.hasMinted(dto);
       ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.OK, "NFT 발행여부 성공", result);
@@ -39,7 +40,9 @@ public class NFTController {
     }
   }
   @PostMapping("/nft/meta")
-  public ResponseEntity<ResponseMessage> uploadMeta(UploadNFTMetadataRequestDto dto) throws Exception {
+  public ResponseEntity<ResponseMessage> uploadMeta(
+      @RequestBody @Valid UploadNFTMetadataRequestDto dto
+  ) throws Exception {
     try {
       val result = this.nftService.uploadMetaNFT(dto);
       ResponseMessage responseMessage = ResponseMessage.of(HttpStatus.OK, "NFT 메타데이터 업로드 성공", result);

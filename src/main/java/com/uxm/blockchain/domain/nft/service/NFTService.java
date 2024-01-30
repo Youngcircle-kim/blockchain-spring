@@ -74,34 +74,31 @@ public class NFTService {
   public UploadNFTMetadataResponseDto uploadMetaNFT(UploadNFTMetadataRequestDto dto)
       throws Exception {
     try{
-      IPFS ipfs = ipfsConfig.IPFS();
+      IPFS ipfs = this.ipfsConfig.IPFS();
       String email = getUserInfo().getUsername();
       Optional<User> user = this.userRepository.findByEmail(email);
       if (user.isEmpty()) throw new Exception("유저 조회 실페");
       Long userId = user.get().getId();
-      String userIdString = userId.toString();
 
       Optional<Music> music = this.musicRepository.findById(dto.getMusicId());
       if (music.isEmpty()) throw new Exception("음원 조회 실패");
-
       byte[] data = ipfs.cat(Multihash.fromBase58(music.get().getCid2()));
       JSONObject copyrightInfo = new JSONObject(new String(data, StandardCharsets.UTF_8));
       JSONArray holders = copyrightInfo.getJSONObject("payProperty").getJSONArray("rightHolders");
 
       JSONObject uploader = null;
-      for (int i = holders.length() - 1; i >= 0; i--) {
+      for (int i = 0; i < holders.length(); i++) {
         JSONObject holder = holders.getJSONObject(i);
-        if (userIdString.equals(holder.getString("userId"))) {
+        if (userId.equals(holder.getLong("userId"))) {
           uploader = holder;
           break;
         }
       }
       if (uploader.isEmpty()) throw new Exception("권한이 없습니다.");
-
       int holderNo = -1;
       for (int i = 0; i < holders.length(); i++) {
         JSONObject holder = holders.getJSONObject(i);
-        if (userIdString.equals(holder.getString("userId"))) {
+        if (userId.equals(holder.getLong("userId"))) {
           holderNo = i + 1;
           break;
         }
@@ -109,12 +106,11 @@ public class NFTService {
       JSONObject mainContent = new JSONObject();
       mainContent.put("cid1", music.get().getCid1());
       mainContent.put("cid2", music.get().getCid2());
-
       JSONObject meta = new JSONObject();
       meta.put("name", holderNo + "/" + holders.length());
       meta.put("minter", uploader.getString("walletAddress"));
       meta.put("mainContent", mainContent);
-      meta.put("proportion", uploader.getInt("proportion"));
+      meta.put("proportion", uploader.getFloat("proportion") * 100);
       meta.put("supply", 1);
       ByteArrayWrapper metaFile = new ByteArrayWrapper(
           meta.toString().getBytes(StandardCharsets.UTF_8));
@@ -126,7 +122,7 @@ public class NFTService {
           .cid(cid)
           .build();
     } catch (Exception e){
-      throw new Exception("NFT 메타데이터 업로드 실패");
+      throw new Exception("NFT 메타데이터 업로드 실패" + e.getMessage());
     }
   }
   public GenerateNFTResponseDto generateNFT(GenerateNFTRequestDto dto) throws Exception{
@@ -248,7 +244,7 @@ public class NFTService {
     TransactionReceipt receipt = transactionReceipt.get();
     String contractAddress = receipt.getContractAddress();
 
-    NFT1155 nft = web3jContractProvider.nft1155(contractAddress, web3);
+    NFT1155 nft = web3jContractProvider.nft1155(contractAddress, web3, web3jConfig);
 
     String currentOwner = nft.owner().send();
     return currentOwner.equalsIgnoreCase(receipt.getFrom());
@@ -263,17 +259,17 @@ public class NFTService {
     TransactionReceipt receipt = transactionReceipt.get();
     String contractAddress = receipt.getContractAddress();
 
-    NFT1155 nft = web3jContractProvider.nft1155(contractAddress, web3);
+    NFT1155 nft = web3jContractProvider.nft1155(contractAddress, web3, web3jConfig);
     return nft.isApprovedForAll(receipt.getFrom(), receipt.getTo()).send();
   }
   private boolean validate(String cid, String contractAddr, String txId) throws Exception {
     Web3j web3 = web3jConfig.web3j();
-    NFT1155 nft = web3jContractProvider.nft1155(contractAddr, web3);
+    NFT1155 nft = web3jContractProvider.nft1155(contractAddr, web3, web3jConfig);
     Optional<TransactionReceipt> transactionReceipt = web3.ethGetTransactionReceipt(txId).send()
         .getTransactionReceipt();
     String settlementContractAddress = nft.settlementContract().send();
     SettlementContractExtra settlementContractExtra = web3jContractProvider.settlementContractExtra(
-        settlementContractAddress, web3);
+        settlementContractAddress, web3, web3jConfig);
 
     if (transactionReceipt.isEmpty()) throw new Exception("트랜잭션 Receipt 실패");
     TransactionReceipt receipt = transactionReceipt.get();
