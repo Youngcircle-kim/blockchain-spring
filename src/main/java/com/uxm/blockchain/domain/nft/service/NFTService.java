@@ -17,11 +17,11 @@ import com.uxm.blockchain.domain.nft.dto.resquest.GenerateNFTResponseDto;
 import com.uxm.blockchain.domain.nft.dto.resquest.UploadNFTMetadataRequestDto;
 import com.uxm.blockchain.domain.nft.entity.Nft;
 import com.uxm.blockchain.domain.nft.repository.NFTRepository;
-import com.uxm.blockchain.domain.purchase.repository.PurchaseRepository;
 import com.uxm.blockchain.domain.user.entity.User;
 import com.uxm.blockchain.domain.user.repository.UserRepository;
 import com.uxm.blockchain.domain.user_nft.entity.User_nft;
 import com.uxm.blockchain.domain.user_nft.repository.UserNftRepository;
+import com.uxm.blockchain.web3j.Web3jContractProvider;
 import io.ipfs.api.IPFS;
 import io.ipfs.api.MerkleNode;
 import io.ipfs.api.NamedStreamable.ByteArrayWrapper;
@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -53,6 +52,7 @@ public class NFTService {
   private final NFTRepository nftRepository;
   private final Web3jConfig web3jConfig;
   private final UserNftRepository userNftRepository;
+  private final Web3jContractProvider web3jContractProvider;
 
   public CheckMintedMusicResponseDto hasMinted(CheckMintedMusicRequestDto dto) throws Exception {
     try{
@@ -241,32 +241,39 @@ public class NFTService {
   }
   private boolean validateOwner(String txId) throws Exception{
     Web3j web3 = web3jConfig.web3j();
-    NFT1155 nft = web3jConfig.nft();
     Optional<TransactionReceipt> transactionReceipt = web3.ethGetTransactionReceipt(txId).send()
         .getTransactionReceipt();
 
     if (transactionReceipt.isEmpty()) throw new Exception("트랜잭션 Receipt 실패");
     TransactionReceipt receipt = transactionReceipt.get();
+    String contractAddress = receipt.getContractAddress();
+
+    NFT1155 nft = web3jContractProvider.nft1155(contractAddress, web3);
 
     String currentOwner = nft.owner().send();
     return currentOwner.equalsIgnoreCase(receipt.getFrom());
   }
   private boolean validate(String txId) throws Exception {
     Web3j web3 = web3jConfig.web3j();
-    NFT1155 nft = web3jConfig.nft();
+
     Optional<TransactionReceipt> transactionReceipt = web3.ethGetTransactionReceipt(txId).send()
         .getTransactionReceipt();
 
     if (transactionReceipt.isEmpty()) throw new Exception("트랜잭션 Receipt 실패");
     TransactionReceipt receipt = transactionReceipt.get();
+    String contractAddress = receipt.getContractAddress();
+
+    NFT1155 nft = web3jContractProvider.nft1155(contractAddress, web3);
     return nft.isApprovedForAll(receipt.getFrom(), receipt.getTo()).send();
   }
   private boolean validate(String cid, String contractAddr, String txId) throws Exception {
     Web3j web3 = web3jConfig.web3j();
-    NFT1155 nft = web3jConfig.nft();
-    SettlementContractExtra settlementContractExtra = web3jConfig.settlementContractExtra();
+    NFT1155 nft = web3jContractProvider.nft1155(contractAddr, web3);
     Optional<TransactionReceipt> transactionReceipt = web3.ethGetTransactionReceipt(txId).send()
         .getTransactionReceipt();
+    String settlementContractAddress = nft.settlementContract().send();
+    SettlementContractExtra settlementContractExtra = web3jContractProvider.settlementContractExtra(
+        settlementContractAddress, web3);
 
     if (transactionReceipt.isEmpty()) throw new Exception("트랜잭션 Receipt 실패");
     TransactionReceipt receipt = transactionReceipt.get();

@@ -38,22 +38,8 @@ public class Web3jConfig {
     BigInteger privateKeyInBT = new BigInteger(PRIVATE_KEY, 16);
     return Credentials.create(ECKeyPair.create(privateKeyInBT));
   }
-  //SettlementContract의 수정 버전이 Extra라 기존 Settlement Contract는 사용 안함.
   @Bean
-  public SettlementContract settlementContract(){
-    return SettlementContract.load(SETTLEMENT_CONTRACT_ADDRESS, web3j(), credentials(), gasProvider());
-  }
-
-  @Bean
-  public SettlementContractExtra settlementContractExtra(){
-    return SettlementContractExtra.load(SETTLEMENT_CONTRACT_ADDRESS, web3j(), credentials(), gasProvider());
-  }
-  @Bean
-  public NFT1155 nft(){
-    return NFT1155.load(NFT_CONTRACT_ADDRESS, web3j(), credentials(), gasProvider());
-  }
-
-  private StaticGasProvider gasProvider(){
+  public  StaticGasProvider gasProvider(){
     BigInteger gasPrice = Contract.GAS_PRICE;
     BigInteger gasLimit = Contract.GAS_LIMIT;
     return new StaticGasProvider(gasPrice, gasLimit);

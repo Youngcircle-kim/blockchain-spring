@@ -2,8 +2,8 @@ package com.uxm.blockchain.domain.purchase.service;
 
 import com.uxm.blockchain.config.IPFSConfig;
 import com.uxm.blockchain.config.Web3jConfig;
-import com.uxm.blockchain.contracts.SettlementContract;
-import com.uxm.blockchain.contracts.SettlementContract.LogBuyerInfoEventResponse;
+import com.uxm.blockchain.contracts.SettlementContractExtra;
+import com.uxm.blockchain.contracts.SettlementContractExtra.LogBuyerInfoEventResponse;
 import com.uxm.blockchain.domain.music.entity.Music;
 import com.uxm.blockchain.domain.music.repository.MusicRepository;
 import com.uxm.blockchain.domain.purchase.dto.response.CheckingPurchasedMusicResponse;
@@ -15,6 +15,7 @@ import com.uxm.blockchain.domain.purchase.model.MusicInfo;
 import com.uxm.blockchain.domain.purchase.repository.PurchaseRepository;
 import com.uxm.blockchain.domain.user.entity.User;
 import com.uxm.blockchain.domain.user.repository.UserRepository;
+import com.uxm.blockchain.web3j.Web3jContractProvider;
 import io.ipfs.api.IPFS;
 import io.ipfs.multibase.Base58;
 import io.ipfs.multihash.Multihash;
@@ -54,6 +55,7 @@ public class PurchaseService {
   private final MusicRepository musicRepository;
   private final UserRepository userRepository;
   private final Web3jConfig web3jConfig;
+  private final Web3jContractProvider web3jContractProvider;
 
   public MusicPurchaseResponse purchaseMusic(long musicId, String hash) throws Exception {
     try{
@@ -61,13 +63,18 @@ public class PurchaseService {
       Optional<User> user = this.userRepository.findByEmail(email);
       if (user.isEmpty()) throw new Exception("존재하지 않는 유저입니다.");
       long userId = user.get().getId();
+      Optional<Music> music = this.musicRepository.findById(musicId);
+
+      if (music.isEmpty()) throw new Exception("음원이 없습니다.");
 
       Web3j web3j = web3jConfig.web3j();
-      SettlementContract contract = web3jConfig.settlementContract();
+      SettlementContractExtra contract = web3jContractProvider.settlementContractExtra(
+          music.get().getAddress(), web3j);
       Optional<TransactionReceipt> transactionReceipt = web3j.ethGetTransactionReceipt(hash).send()
           .getTransactionReceipt();
       if (transactionReceipt.isEmpty()) throw new Exception("Receipt 없음");
       TransactionReceipt receipt = transactionReceipt.get();
+
       LogBuyerInfoEventResponse logBuyerInfoEventFromLog = contract.getLogBuyerInfoEventFromLog(
           receipt.getLogs().get(0));
       String buyer = logBuyerInfoEventFromLog.buyer;
