@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,7 +27,7 @@ public class NFTController {
 
   @GetMapping("/nft/hasMinted")
   public ResponseEntity<ResponseMessage> hasMinted(
-      @RequestBody @Valid CheckMintedMusicRequestDto dto
+      @Valid CheckMintedMusicRequestDto dto
   ) throws Exception {
     try {
       CheckMintedMusicResponseDto result = this.nftService.hasMinted(dto);
@@ -41,7 +40,7 @@ public class NFTController {
   }
   @PostMapping("/nft/meta")
   public ResponseEntity<ResponseMessage> uploadMeta(
-      @RequestBody @Valid UploadNFTMetadataRequestDto dto
+      @Valid UploadNFTMetadataRequestDto dto
   ) throws Exception {
     try {
       val result = this.nftService.uploadMetaNFT(dto);
@@ -67,7 +66,7 @@ public class NFTController {
   @PostMapping("/nft/sell/{id}")
   public ResponseEntity<ResponseMessage> registrationNFT(
       final @PathVariable @Valid Long id,
-      final @RequestBody @Valid String txId
+      final @Valid String txId
   )throws Exception {
     try {
       val result = this.nftService.registNFT(id, txId);
@@ -82,7 +81,7 @@ public class NFTController {
   @PostMapping("/nft/purchase/{id}")
   public ResponseEntity<ResponseMessage> purchaseNFT(
       final @PathVariable @Valid Long id,
-      final @RequestBody @Valid String txId
+      final @Valid String txId
   )throws Exception {
     try {
       val result = this.nftService.sellNFT(id, txId);

@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,8 +31,8 @@ public class UserController {
 
   @PostMapping("/auth/signup")
   public ResponseEntity<ResponseMessage> signUp(
-      final @RequestBody @Valid UserSignUpRequest userSignUpRequestDto
-  ){
+      final @Valid UserSignUpRequest userSignUpRequestDto
+  ) throws Exception {
     var result = this.userService.signUp(userSignUpRequestDto);
     ResponseMessage responseMessage;
 
@@ -47,7 +46,7 @@ public class UserController {
 
   @PostMapping("/auth/check")
   public ResponseEntity<ResponseMessage> checkWallet(
-      final @RequestBody @Valid UserCheckWalletRequest userCheckWalletRequestDto
+      final @Valid UserCheckWalletRequest userCheckWalletRequestDto
   ){
     var result = userService.checkWallet(userCheckWalletRequestDto);
     ResponseMessage responseMessage;
@@ -62,7 +61,7 @@ public class UserController {
 
   @PostMapping("/auth/signin")
   public ResponseEntity<ResponseMessage> signIn(
-     final @RequestBody @Valid UserSignInRequest userSignInRequestDto
+     final @Valid UserSignInRequest userSignInRequestDto
   ){
     var result = userService.signIn(userSignInRequestDto);
     ResponseMessage responseMessage;
@@ -89,7 +88,7 @@ public class UserController {
   @GetMapping("/user")
   public ResponseEntity<ResponseMessage> userFindOneInfo(
       final @RequestParam("search") @Valid UserFindOneRequest dto
-  ) throws Exception {
+  ){
     try {
       log.info("dto : {}", dto);
       val result = this.userService.findOneInfo(dto);
@@ -102,7 +101,7 @@ public class UserController {
   }
   @PutMapping("/user")
   public ResponseEntity<ResponseMessage> updateUserInfo(
-      final @RequestBody @Valid UserUpdateRequest userUpdateRequestDto
+      final @Valid UserUpdateRequest userUpdateRequestDto
   ){
     try {
       val result = this.userService.updateInfo(userUpdateRequestDto);

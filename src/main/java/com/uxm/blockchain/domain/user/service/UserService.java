@@ -13,7 +13,7 @@ import com.uxm.blockchain.domain.user.dto.request.UserSignUpRequest;
 import com.uxm.blockchain.domain.user.dto.request.UserUpdateRequest;
 
 public interface UserService {
-  UserSignUpResponse signUp(UserSignUpRequest dto);
+  UserSignUpResponse signUp(UserSignUpRequest dto) throws Exception;
 
   UserCheckWalletResponse checkWallet(UserCheckWalletRequest dto);
 

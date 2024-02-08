@@ -40,18 +40,23 @@ public class UserServiceImpl implements UserService{
   private final JwtTokenProvider jwtTokenProvider;
 
   @Override
-  public UserSignUpResponse signUp(UserSignUpRequest dto) {
-    if (userRepository.findByEmail(dto.getEmail()).isPresent()){
-      return UserSignUpResponse.from("회원가입 실패 - 이미 존재하는 이메일입니다.");
+  public UserSignUpResponse signUp(UserSignUpRequest dto) throws Exception {
+    try {
+      if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
+        return UserSignUpResponse.from("회원가입 실패 - 이미 존재하는 이메일입니다.");
+      }
+      if (userRepository.findByNickname(dto.getNickname()).isPresent()) {
+        return UserSignUpResponse.from("회원가입 실패 - 이미 존재하는 닉네임입니다.");
+      }
+      User user = userRepository.save(dto.toEntity());
+      user.encodePassword(passwordEncoder);
+      return UserSignUpResponse.from(
+          userRepository.findSignUpByEmail(user.getEmail()), "회원가입 성공"
+      );
+    } catch (Exception e){
+      log.info(e.getMessage());
+      throw new Exception("");
     }
-    if(userRepository.findByNickname(dto.getNickname()).isPresent()){
-      return UserSignUpResponse.from("회원가입 실패 - 이미 존재하는 닉네임입니다.");
-    }
-    User user = userRepository.save(dto.toEntity());
-    user.encodePassword(passwordEncoder);
-    return UserSignUpResponse.from(
-        userRepository.findSignUpByEmail(user.getEmail()), "회원가입 성공"
-    );
   }
 
   @Override
